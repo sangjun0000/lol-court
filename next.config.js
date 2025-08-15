@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  // Next.js 14에서는 appDir이 기본값이므로 제거
 }
 
 module.exports = nextConfig

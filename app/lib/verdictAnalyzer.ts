@@ -115,7 +115,7 @@ export class LolCourtAnalyzer {
       if (lowerCase.includes(behavior) && Math.abs(analysis.severity) > Math.abs(maxSeverity)) {
         maxSeverity = analysis.severity
         detectedBehavior = behavior
-        intent = analysis.intent
+        intent = analysis.intent as 'positive' | 'negative' | 'neutral'
       }
     }
 
@@ -188,7 +188,8 @@ export class LolCourtAnalyzer {
   private generateVerdict(
     behavior: any,
     context: GameContext,
-    responsibility: any
+    responsibility: any,
+    caseDescription: string
   ): VerdictAnalysis {
     const { severity, intent } = behavior
     const { gamePhase, gameState, playerRoles, roleConflicts } = context
@@ -345,6 +346,6 @@ export class LolCourtAnalyzer {
     const behavior = this.analyzeBehavior(caseDescription)
     const responsibility = this.analyzeResponsibility(caseDescription, context)
 
-    return this.generateVerdict(behavior, context, responsibility)
+    return this.generateVerdict(behavior, context, responsibility, caseDescription)
   }
 }
