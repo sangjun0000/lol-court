@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { LolCourtAnalyzer } from '@/app/lib/verdictAnalyzer'
+import { LolAIJudge } from '@/app/lib/aiJudge'
 
-// 고급 롤문철 분석기 인스턴스
+// 기존 규칙 기반 분석기 (백업용)
 const analyzer = new LolCourtAnalyzer()
+
+// AI 판사 (OpenAI API 사용)
+const aiJudge = process.env.OPENAI_API_KEY 
+  ? new LolAIJudge(process.env.OPENAI_API_KEY)
+  : null
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,7 +49,21 @@ export async function POST(request: NextRequest) {
     // })
 
     // 고급 롤문철 분석 시스템 사용
-    const analysis = analyzer.analyzeCase(caseDescription)
+    // AI 판사가 있으면 AI 사용, 없으면 규칙 기반 분석기 사용
+    let analysis
+    let modelType = 'rule-based'
+    
+    if (aiJudge) {
+      try {
+        analysis = await aiJudge.analyzeCase(caseDescription)
+        modelType = 'ai-powered'
+      } catch (aiError) {
+        console.error('AI 판사 오류, 규칙 기반 분석기로 대체:', aiError)
+        analysis = analyzer.analyzeCase(caseDescription)
+      }
+    } else {
+      analysis = analyzer.analyzeCase(caseDescription)
+    }
     
     return NextResponse.json({
       verdict: analysis.verdict,
@@ -52,7 +72,8 @@ export async function POST(request: NextRequest) {
       confidence: analysis.confidence,
       factors: analysis.factors,
       recommendations: analysis.recommendations,
-      characterAnalysis: analysis.characterAnalysis
+      characterAnalysis: analysis.characterAnalysis,
+      modelType: modelType // 어떤 모델을 사용했는지 표시
     })
 
   } catch (error) {
