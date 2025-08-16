@@ -15,4 +15,4 @@ User-agent: Googlebot-Mobile
 Allow: /
 
 # 사이트맵
-Sitemap: https://lol-court-4c82ikgz6-sangjun0000s-projects.vercel.app/sitemap.xml
+Sitemap: https://lol-court-app.vercel.app/sitemap.xml
