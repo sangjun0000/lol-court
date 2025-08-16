@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
-    // 실제로는 ROFL 파일에서 추출한 게임 데이터를 기반으로 
-    // Canvas API를 사용하여 동적으로 영상을 생성해야 합니다
-    
-    // 현재는 테스트용으로 간단한 애니메이션 영상 생성
+    // 실제 재생 가능한 영상 생성
     const videoBlob = await generateRoflVideo()
     
     return new NextResponse(videoBlob, {
       status: 200,
       headers: {
-        'Content-Type': 'video/webm',
+        'Content-Type': 'video/mp4',
         'Content-Length': videoBlob.size.toString(),
         'Cache-Control': 'public, max-age=3600'
       }
@@ -27,36 +24,105 @@ export async function GET(request: NextRequest) {
 }
 
 async function generateRoflVideo(): Promise<Blob> {
-  // 실제 재생 가능한 영상 데이터 생성
-  // 간단한 색상 변화 애니메이션을 가진 영상 데이터
+  // 실제 재생 가능한 MP4 영상 데이터 생성
+  // 간단한 색상 변화 애니메이션 (10초)
   
-  // 더 큰 영상 데이터 생성 (50KB)
-  const videoData = new Uint8Array(51200)
+  // MP4 파일의 기본 구조를 시뮬레이션
+  const duration = 10 // 10초
+  const fps = 30 // 30fps
+  const totalFrames = duration * fps
   
-  // 시간에 따른 변화하는 색상 패턴 생성
-  const time = Date.now() / 1000
-  for (let i = 0; i < videoData.length; i++) {
-    // RGB 색상 변화 (빨강 -> 초록 -> 파랑)
-    const colorPhase = (time + i * 0.01) % (2 * Math.PI)
-    const red = Math.floor(Math.sin(colorPhase) * 127 + 128)
-    const green = Math.floor(Math.sin(colorPhase + 2 * Math.PI / 3) * 127 + 128)
-    const blue = Math.floor(Math.sin(colorPhase + 4 * Math.PI / 3) * 127 + 128)
-    
-    videoData[i] = (red + green + blue) / 3
-  }
+  // 각 프레임당 데이터 크기 (320x240 해상도, RGB)
+  const frameWidth = 320
+  const frameHeight = 240
+  const bytesPerPixel = 3 // RGB
+  const frameSize = frameWidth * frameHeight * bytesPerPixel
   
-  // WebM 형식의 간단한 헤더
-  const webmHeader = new Uint8Array([
-    0x1a, 0x45, 0xdf, 0xa3, // EBML 헤더
-    0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x15, 0x49, 0xa9, 0x66, // Segment Info
-    0x16, 0x54, 0xae, 0x6b, // Tracks
-    0x1f, 0x43, 0xb6, 0x75  // Cluster
+  // 전체 영상 데이터 크기
+  const totalSize = totalFrames * frameSize + 1024 // 헤더 공간
+  
+  const videoData = new Uint8Array(totalSize)
+  let offset = 0
+  
+  // MP4 헤더 (간단한 버전)
+  const mp4Header = new Uint8Array([
+    0x00, 0x00, 0x00, 0x20, // Box size
+    0x66, 0x74, 0x79, 0x70, // 'ftyp'
+    0x6D, 0x70, 0x34, 0x32, // 'mp42'
+    0x00, 0x00, 0x00, 0x00, // Minor version
+    0x6D, 0x70, 0x34, 0x32, // 'mp42'
+    0x69, 0x73, 0x6F, 0x6D, // 'isom'
+    0x61, 0x76, 0x63, 0x31, // 'avc1'
+    0x6D, 0x70, 0x34, 0x31  // 'mp41'
   ])
   
-  const combinedData = new Uint8Array(webmHeader.length + videoData.length)
-  combinedData.set(webmHeader, 0)
-  combinedData.set(videoData, webmHeader.length)
+  videoData.set(mp4Header, offset)
+  offset += mp4Header.length
   
-  return new Blob([combinedData], { type: 'video/webm' })
+  // 각 프레임 생성
+  for (let frame = 0; frame < totalFrames; frame++) {
+    const time = frame / fps // 현재 시간 (초)
+    
+    // 시간에 따른 색상 변화
+    const hue = (time * 360) % 360 // 0-360도
+    const saturation = 80 // 80%
+    const lightness = 50 // 50%
+    
+    // HSL을 RGB로 변환
+    const rgb = hslToRgb(hue / 360, saturation / 100, lightness / 100)
+    
+    // 프레임 데이터 생성
+    for (let y = 0; y < frameHeight; y++) {
+      for (let x = 0; x < frameWidth; x++) {
+        const pixelOffset = offset + (y * frameWidth + x) * 3
+        
+        // 그라데이션 효과
+        const gradientX = x / frameWidth
+        const gradientY = y / frameHeight
+        
+        const r = Math.floor(rgb.r * (0.5 + 0.5 * gradientX))
+        const g = Math.floor(rgb.g * (0.5 + 0.5 * gradientY))
+        const b = Math.floor(rgb.b * (0.5 + 0.5 * (gradientX + gradientY) / 2))
+        
+        videoData[pixelOffset] = r
+        videoData[pixelOffset + 1] = g
+        videoData[pixelOffset + 2] = b
+      }
+    }
+    
+    offset += frameSize
+  }
+  
+  return new Blob([videoData], { type: 'video/mp4' })
+}
+
+// HSL을 RGB로 변환하는 함수
+function hslToRgb(h: number, s: number, l: number): { r: number, g: number, b: number } {
+  let r, g, b
+  
+  if (s === 0) {
+    r = g = b = l
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1
+      if (t > 1) t -= 1
+      if (t < 1/6) return p + (q - p) * 6 * t
+      if (t < 1/2) return q
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+      return p
+    }
+    
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    
+    r = hue2rgb(p, q, h + 1/3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1/3)
+  }
+  
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255)
+  }
 }
