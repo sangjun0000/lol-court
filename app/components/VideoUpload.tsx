@@ -365,7 +365,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         )}
 
         {/* ROFL 파일 변환 결과 */}
-        {videoUrl && videoUrl !== 'rofl-data-file' && (
+        {videoUrl && videoFile?.name.endsWith('.rofl') && (
           <div className="mt-6">
             <h3 className="text-xl font-bold text-lol-gold mb-4">
               🎬 ROFL 영상 변환 완료!
@@ -462,8 +462,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </div>
         )}
 
-        {/* 영상/ROFL 미리보기 및 구간 선택 */}
-        {videoUrl && (
+        {/* 일반 영상 미리보기 및 구간 선택 */}
+        {videoUrl && !videoFile?.name.endsWith('.rofl') && (
           <div className="bg-gray-100 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-2">
               {videoFile?.name.endsWith('.rofl') ? '🎮 ROFL 파일 구간 선택' : '🎥 영상 미리보기 및 구간 선택'}
