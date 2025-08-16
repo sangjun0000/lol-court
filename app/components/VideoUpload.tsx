@@ -77,6 +77,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       setVideoDuration(duration)
       // 기본적으로 처음 30초 또는 전체 영상 중 짧은 것
       setEndTime(Math.min(30, duration))
+      // 영상이 로드되면 자동 재생
+      videoRef.current.play().catch(e => console.log('자동 재생 실패:', e))
     }
   }
 
@@ -297,121 +299,180 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 />
              )}
             
-                                                   {/* 구간 선택 안내 */}
-              <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-700 font-medium mb-2">
-                  🎯 분석 구간 선택 방법:
-                </p>
-                <ul className="text-sm text-blue-600 space-y-1">
-                  {videoFile?.name.endsWith('.rofl') ? (
-                    <>
-                      <li>• 게임 시간을 기준으로 분석하고 싶은 구간을 선택하세요</li>
-                      <li>• 시작 시간에서 "구간 시작" 버튼을 클릭하세요</li>
-                      <li>• 종료 시간에서 "구간 종료" 버튼을 클릭하세요</li>
-                      <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
-                    </>
-                  ) : (
-                    <>
-                      <li>• 영상이 자동으로 재생됩니다 (음소거 상태)</li>
-                      <li>• 원하는 구간을 찾으면 "구간 시작" 버튼을 클릭하세요</li>
-                      <li>• 구간이 끝나는 지점에서 "구간 종료" 버튼을 클릭하세요</li>
-                      <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
-                    </>
-                  )}
-                </ul>
-              </div>
-
-                                                   {/* 구간 선택 버튼 */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                <button
-                  type="button"
-                  onClick={handleRangeSelectionStart}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
-                >
-                  🎬 현재 지점을 시작으로 설정
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRangeSelectionEnd}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                >
-                  ⏹️ 현재 지점을 종료로 설정
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStartTime(0)
-                    setEndTime(Math.min(60, videoDuration))
-                  }}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                >
-                  {videoFile?.name.endsWith('.rofl') ? '🔄 처음 1분으로 설정' : '🔄 처음 30초로 설정'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (videoRef.current) {
-                      videoRef.current.currentTime = startTime
-                    }
-                  }}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
-                >
-                  📍 시작 지점으로 이동
-                </button>
-              </div>
-
-                         {/* 구간 정보 표시 */}
-             <div className="bg-gradient-to-r from-green-50 to-red-50 rounded-lg p-4 border-2 border-gray-200">
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                 <div className="bg-white rounded-lg p-3 border border-green-200">
-                   <p className="text-sm text-gray-600 mb-1">🎬 시작 시간</p>
-                   <p className="text-xl font-bold text-green-600">{formatTime(startTime)}</p>
-                 </div>
-                 <div className="bg-white rounded-lg p-3 border border-red-200">
-                   <p className="text-sm text-gray-600 mb-1">⏹️ 종료 시간</p>
-                   <p className="text-xl font-bold text-red-600">{formatTime(endTime)}</p>
-                 </div>
-                 <div className="bg-white rounded-lg p-3 border border-blue-200">
-                   <p className="text-sm text-gray-600 mb-1">📊 분석 구간</p>
-                   <p className="text-xl font-bold text-blue-600">{formatTime(getRangeDuration())}</p>
-                 </div>
-               </div>
-               <div className="mt-3 text-center">
-                 <p className="text-sm text-gray-600">
-                   💡 현재 영상 시간: <span className="font-medium text-purple-600">
-                     {videoRef.current ? formatTime(videoRef.current.currentTime) : '0:00'}
-                   </span>
+                                                                                                       {/* 구간 선택 안내 */}
+               <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                 <p className="text-sm text-blue-700 font-medium mb-2">
+                   🎯 분석 구간 선택 방법:
                  </p>
+                 <ul className="text-sm text-blue-600 space-y-1">
+                   {videoFile?.name.endsWith('.rofl') ? (
+                     <>
+                       <li>• 게임 시간을 기준으로 분석하고 싶은 구간을 선택하세요</li>
+                       <li>• 아래 슬라이더로 시작과 종료 지점을 설정하세요</li>
+                       <li>• 설정한 구간이 실시간으로 표시됩니다</li>
+                     </>
+                   ) : (
+                     <>
+                       <li>• 영상이 자동으로 재생됩니다 (음소거 상태)</li>
+                       <li>• 아래 슬라이더로 시작과 종료 지점을 설정하세요</li>
+                       <li>• 설정한 구간이 실시간으로 표시됩니다</li>
+                     </>
+                   )}
+                 </ul>
                </div>
-             </div>
 
-            {/* 슬라이더로 세밀 조정 */}
-            <div className="mt-4 space-y-3">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">시작 시간 조정</label>
-                <input
-                  type="range"
-                  min="0"
-                  max={videoDuration}
-                  value={startTime}
-                  onChange={(e) => setStartTime(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <span className="text-sm text-gray-600">{formatTime(startTime)}</span>
+                          {/* 구간 정보 표시 */}
+              <div className="bg-gradient-to-r from-green-50 to-red-50 rounded-lg p-4 border-2 border-gray-200 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="bg-white rounded-lg p-3 border border-green-200">
+                    <p className="text-sm text-gray-600 mb-1">🎬 시작 시간</p>
+                    <p className="text-xl font-bold text-green-600">{formatTime(startTime)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-red-200">
+                    <p className="text-sm text-gray-600 mb-1">⏹️ 종료 시간</p>
+                    <p className="text-xl font-bold text-red-600">{formatTime(endTime)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-blue-200">
+                    <p className="text-sm text-gray-600 mb-1">📊 분석 구간</p>
+                    <p className="text-xl font-bold text-blue-600">{formatTime(getRangeDuration())}</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-sm text-gray-600">
+                    💡 현재 영상 시간: <span className="font-medium text-purple-600">
+                      {videoRef.current ? formatTime(videoRef.current.currentTime) : '0:00'}
+                    </span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">종료 시간 조정</label>
-                <input
-                  type="range"
-                  min="0"
-                  max={videoDuration}
-                  value={endTime}
-                  onChange={(e) => setEndTime(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <span className="text-sm text-gray-600">{formatTime(endTime)}</span>
-              </div>
-            </div>
+
+                                                    {/* 구간 선택 바 */}
+               <div className="bg-white rounded-lg p-4 border-2 border-gray-200 mb-4">
+                 <div className="mb-4">
+                   <h5 className="text-sm font-medium text-gray-700 mb-2">🎯 구간 선택 바</h5>
+                   <p className="text-xs text-gray-600 mb-3">
+                     녹색 바: 시작 지점 | 빨간 바: 종료 지점 | 파란 영역: 선택된 구간
+                   </p>
+                 </div>
+                 
+                 {/* 구간 선택 슬라이더 */}
+                 <div className="relative mb-6">
+                   <div className="relative h-8 bg-gray-200 rounded-lg overflow-hidden">
+                     {/* 선택된 구간 표시 */}
+                     <div 
+                       className="absolute h-full bg-blue-400 opacity-60"
+                       style={{
+                         left: `${(startTime / videoDuration) * 100}%`,
+                         width: `${((endTime - startTime) / videoDuration) * 100}%`
+                       }}
+                     />
+                     
+                     {/* 시작 지점 슬라이더 */}
+                     <input
+                       type="range"
+                       min="0"
+                       max={videoDuration}
+                       value={startTime}
+                       onChange={(e) => {
+                         const newStartTime = parseFloat(e.target.value)
+                         setStartTime(newStartTime)
+                         if (videoRef.current) {
+                           videoRef.current.currentTime = newStartTime
+                         }
+                       }}
+                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10"
+                     />
+                     
+                     {/* 종료 지점 슬라이더 */}
+                     <input
+                       type="range"
+                       min="0"
+                       max={videoDuration}
+                       value={endTime}
+                       onChange={(e) => {
+                         const newEndTime = parseFloat(e.target.value)
+                         setEndTime(newEndTime)
+                         if (videoRef.current) {
+                           videoRef.current.currentTime = newEndTime
+                         }
+                       }}
+                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-20"
+                     />
+                     
+                     {/* 시작 지점 마커 */}
+                     <div 
+                       className="absolute top-0 h-full w-1 bg-green-500 cursor-pointer z-30"
+                       style={{ left: `${(startTime / videoDuration) * 100}%` }}
+                       onClick={() => {
+                         if (videoRef.current) {
+                           videoRef.current.currentTime = startTime
+                         }
+                       }}
+                     />
+                     
+                     {/* 종료 지점 마커 */}
+                     <div 
+                       className="absolute top-0 h-full w-1 bg-red-500 cursor-pointer z-30"
+                       style={{ left: `${(endTime / videoDuration) * 100}%` }}
+                       onClick={() => {
+                         if (videoRef.current) {
+                           videoRef.current.currentTime = endTime
+                         }
+                       }}
+                     />
+                   </div>
+                   
+                   {/* 시간 표시 */}
+                   <div className="flex justify-between text-xs text-gray-600 mt-1">
+                     <span>0:00</span>
+                     <span>{formatTime(videoDuration)}</span>
+                   </div>
+                 </div>
+                 
+                 {/* 빠른 설정 버튼 */}
+                 <div className="flex flex-wrap gap-2">
+                   <button
+                     type="button"
+                     onClick={() => {
+                       setStartTime(0)
+                       setEndTime(Math.min(30, videoDuration))
+                       if (videoRef.current) {
+                         videoRef.current.currentTime = 0
+                       }
+                     }}
+                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                   >
+                     처음 30초
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => {
+                       setStartTime(0)
+                       setEndTime(Math.min(60, videoDuration))
+                       if (videoRef.current) {
+                         videoRef.current.currentTime = 0
+                       }
+                     }}
+                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                   >
+                     처음 1분
+                   </button>
+                   <button
+                     type="button"
+                     onClick={() => {
+                       const midPoint = videoDuration / 2
+                       setStartTime(Math.max(0, midPoint - 30))
+                       setEndTime(Math.min(videoDuration, midPoint + 30))
+                       if (videoRef.current) {
+                         videoRef.current.currentTime = midPoint
+                       }
+                     }}
+                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                   >
+                     중간 1분
+                   </button>
+                 </div>
+               </div>
 
             {/* 구간 경고 */}
             {getRangeDuration() > 60 && (
