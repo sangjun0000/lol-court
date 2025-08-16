@@ -41,13 +41,6 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       
       // rofl 파일인 경우 특별 처리
       if (file.name.endsWith('.rofl')) {
-        // ROFL 파일도 구간 선택 가능하도록 처리
-        setVideoUrl('rofl-file')
-        // ROFL 파일의 경우 기본 게임 시간 설정 (20분 게임 기준)
-        setVideoDuration(1200) // 20분 = 1200초
-        setStartTime(0)
-        setEndTime(60) // 기본적으로 처음 1분 분석
-        
         // ROFL 파일을 영상으로 변환 (진행률 표시 포함)
         try {
           setIsConverting(true)
@@ -80,14 +73,26 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           
           if (response.ok) {
             const result = await response.json()
-            if (result.success) {
-              // 변환 완료
+            if (result.success && result.videoUrl) {
+              // 변환 완료 - 실제 영상 URL 설정
               setConversionProgress(100)
               setIsConverting(false)
               clearInterval(progressInterval)
               
-              // ROFL 파일은 실제 영상이 아님을 표시
-              setVideoUrl('rofl-data-file')
+              // 실제 영상 URL 설정
+              setVideoUrl(result.videoUrl)
+              setVideoDuration(300) // 5분 영상
+              setStartTime(0)
+              setEndTime(60) // 기본적으로 처음 1분 분석
+              
+              // 영상 재생을 위한 지연
+              setTimeout(() => {
+                const videoElement = document.getElementById('rofl-video') as HTMLVideoElement
+                if (videoElement) {
+                  videoElement.load()
+                  videoElement.play().catch(e => console.log('영상 자동 재생 실패:', e))
+                }
+              }, 1000)
             }
           }
         } catch (error) {
