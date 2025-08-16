@@ -95,18 +95,32 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                setTimeout(() => {
                  if (videoRef.current) {
                    videoRef.current.load() // 영상 다시 로드
+                   console.log('ROFL 변환 완료, 영상 로드 시작')
+                   
                    // 여러 번 재생 시도
-                   const playAttempts = [50, 200, 500, 1000]
+                   const playAttempts = [100, 300, 600, 1200, 2000]
                    playAttempts.forEach(delay => {
                      setTimeout(() => {
                        if (videoRef.current && videoRef.current.paused) {
                          videoRef.current.muted = true
-                         videoRef.current.play().catch(e => console.log(`ROFL 영상 재생 시도 ${delay}ms 실패:`, e))
+                         videoRef.current.play().then(() => {
+                           console.log(`ROFL 영상 재생 성공 (${delay}ms)`)
+                         }).catch(e => console.log(`ROFL 영상 재생 시도 ${delay}ms 실패:`, e))
                        }
                      }, delay)
                    })
+                   
+                   // 추가로 onCanPlay 이벤트에서도 재생 시도
+                   const canPlayHandler = () => {
+                     if (videoRef.current && videoRef.current.paused) {
+                       videoRef.current.muted = true
+                       videoRef.current.play().catch(e => console.log('CanPlay 이벤트에서 재생 실패:', e))
+                     }
+                     videoRef.current?.removeEventListener('canplay', canPlayHandler)
+                   }
+                   videoRef.current.addEventListener('canplay', canPlayHandler)
                  }
-               }, 100) // 100ms로 조정
+               }, 200) // 200ms로 조정
              }
            }
          } catch (error) {
@@ -407,7 +421,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                     <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
                       <video
                         ref={videoRef}
-                        src={videoUrl === 'rofl-file' ? undefined : videoUrl}
+                        src={videoUrl === 'rofl-file' || videoUrl === '' ? undefined : videoUrl}
                         controls
                         autoPlay
                         muted
@@ -424,7 +438,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                       />
                       
                                                                    {/* ROFL 파일인 경우 진행률 표시 */}
-                      {videoFile?.name.endsWith('.rofl') && isConverting && (
+                      {videoFile?.name.endsWith('.rofl') && isConverting && conversionProgress < 100 && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
                           <div className="text-center text-white w-full max-w-md">
                             <div className="text-6xl mb-4">⚡</div>
