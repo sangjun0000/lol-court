@@ -1,9 +1,18 @@
 User-agent: *
 Allow: /
 
-# Google AdSense 크롤러 허용
+# Google AdSense 크롤러 명시적 허용
 User-agent: Mediapartners-Google
 Allow: /
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-Mobile
+Allow: /
+
 # 사이트맵
-Sitemap: https://lol-court-dju7zom7s-sangjun0000s-projects.vercel.app/sitemap.xml
+Sitemap: https://lol-court-4c82ikgz6-sangjun0000s-projects.vercel.app/sitemap.xml

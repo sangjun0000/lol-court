@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템',
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://lol-court-dju7zom7s-sangjun0000s-projects.vercel.app',
+    url: 'https://lol-court-4c82ikgz6-sangjun0000s-projects.vercel.app',
     siteName: '롤법원',
   },
   verification: {
