@@ -469,123 +469,24 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
               {videoFile?.name.endsWith('.rofl') ? '🎮 ROFL 파일 구간 선택' : '🎥 영상 미리보기 및 구간 선택'}
             </h4>
             
-            {videoFile?.name.endsWith('.rofl') ? (
-              // ROFL 파일 구간 선택 UI
-              <div className="space-y-4">
-                {/* ROFL 파일 정보 */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">🎮</div>
-                    <p className="text-lg font-medium text-yellow-800 mb-2">
-                      ROFL 파일: {videoFile.name}
-                    </p>
-                    <p className="text-sm text-yellow-700">
-                      게임 시간을 기준으로 분석 구간을 선택하세요
-                    </p>
-                  </div>
-                </div>
-                
-                {/* ROFL 영상 재생 영역 */}
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="text-center mb-3">
-                    <p className="text-white text-sm font-medium">🎬 게임 리플레이 영상</p>
-                    <p className="text-gray-300 text-xs">ROFL 파일에서 추출된 게임 영상</p>
-                  </div>
-                  
-                  {/* ROFL 파일 정보 표시 */}
-                  <div className="relative bg-gradient-to-br from-blue-900 to-purple-900 rounded-lg overflow-hidden aspect-video">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center text-white p-8">
-                        <div className="text-6xl mb-4">🎮</div>
-                        <h3 className="text-xl font-bold mb-4">ROFL 파일 분석 완료</h3>
-                        <div className="bg-black bg-opacity-50 rounded-lg p-4 mb-4">
-                          <p className="text-sm mb-3">
-                            <strong>ROFL 파일 특성:</strong><br/>
-                            ROFL 파일은 실제 영상이 아닌 게임 데이터입니다.
-                          </p>
-                          <div className="text-xs text-gray-300 space-y-1">
-                            <p><strong>다음 단계:</strong></p>
-                            <p>1. League of Legends 클라이언트에서 ROFL 파일 열기</p>
-                            <p>2. 리플레이 재생 중 화면 녹화</p>
-                            <p>3. 녹화된 영상을 이 사이트에 업로드</p>
-                          </div>
-                        </div>
-                        <div className="bg-green-900 bg-opacity-50 rounded-lg p-3">
-                          <p className="text-sm">
-                            💡 <strong>장점:</strong> ROFL 파일은 게임의 모든 데이터를 포함하여 
-                            더 정확한 분석이 가능합니다.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* ROFL 파일인 경우 진행률 표시 */}
-                  {videoFile?.name.endsWith('.rofl') && isConverting && conversionProgress < 100 && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                      <div className="text-center text-white w-full max-w-md">
-                        <div className="text-6xl mb-4">⚡</div>
-                        <p className="text-lg font-medium mb-2">
-                          초고속 변환 중...
-                        </p>
-                        <p className="text-sm text-gray-300 mb-4">
-                          게임 데이터를 초고속으로 추출하고 있습니다
-                        </p>
-                        
-                        {/* 진행률 바 */}
-                        <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-                          <div 
-                            className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300 ease-out"
-                            style={{ width: `${conversionProgress}%` }}
-                          ></div>
-                        </div>
-                        
-                        {/* 진행률 퍼센트 */}
-                        <div className="text-2xl font-bold text-green-400 mb-2">
-                          {conversionProgress}%
-                        </div>
-                        
-                        {/* 상태 메시지 */}
-                        <div className="text-sm text-gray-400">
-                          {conversionProgress < 20 && '파일 분석 중...'}
-                          {conversionProgress >= 20 && conversionProgress < 50 && '게임 데이터 추출 중...'}
-                          {conversionProgress >= 50 && conversionProgress < 80 && '영상 생성 중...'}
-                          {conversionProgress >= 80 && conversionProgress < 100 && '최종 처리 중...'}
-                          {conversionProgress >= 100 && '✅ 완료!'}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* ROFL 전용 안내 */}
-                <div className="mt-3 p-3 bg-blue-900 rounded-lg">
-                  <p className="text-white text-sm">
-                    💡 <strong>ROFL 파일 특징:</strong> 게임의 모든 데이터(위치, 스킬 사용, 데미지 등)를 포함하여 
-                    더 정확한 분석이 가능합니다.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              // 일반 영상 미리보기
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                className="w-full rounded-lg mb-4 cursor-pointer"
-                onLoadedMetadata={handleVideoLoad}
-                onTimeUpdate={handleTimeUpdate}
-                onCanPlay={() => {
-                  if (videoRef.current && videoRef.current.paused) {
-                    videoRef.current.play().catch(e => console.log('CanPlay 후 재생 실패:', e))
-                  }
-                }}
-              />
-            )}
+                        {/* 일반 영상 미리보기 */}
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              controls
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              className="w-full rounded-lg mb-4 cursor-pointer"
+              onLoadedMetadata={handleVideoLoad}
+              onTimeUpdate={handleTimeUpdate}
+              onCanPlay={() => {
+                if (videoRef.current && videoRef.current.paused) {
+                  videoRef.current.play().catch(e => console.log('CanPlay 후 재생 실패:', e))
+                }
+              }}
+            />
             
             {/* 구간 선택 안내 */}
             <div className="bg-blue-50 rounded-lg p-3 mb-4">
