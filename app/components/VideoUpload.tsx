@@ -77,8 +77,12 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       setVideoDuration(duration)
       // 기본적으로 처음 30초 또는 전체 영상 중 짧은 것
       setEndTime(Math.min(30, duration))
-      // 영상이 로드되면 자동 재생
-      videoRef.current.play().catch(e => console.log('자동 재생 실패:', e))
+      // 영상이 로드되면 자동 재생 (약간의 지연 후)
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.play().catch(e => console.log('자동 재생 실패:', e))
+        }
+      }, 500)
     }
   }
 
@@ -171,6 +175,20 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
 
   const getRangeDuration = () => {
     return endTime - startTime
+  }
+
+  // 실시간 비용 계산
+  const getCurrentCost = () => {
+    if (!videoFile || getRangeDuration() <= 0) return null
+    
+    const duration = getRangeDuration()
+    const fileType = videoFile.name.endsWith('.rofl') ? 'rofl' : 'video'
+    
+    return CostCalculator.calculateCost({
+      duration,
+      fileType,
+      quality: 'standard'
+    })
   }
 
   return (
@@ -346,142 +364,151 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 </div>
               </div>
 
-                                                    {/* 구간 선택 바 */}
-               <div className="bg-white rounded-lg p-4 border-2 border-gray-200 mb-4">
-                 <div className="mb-4">
-                   <h5 className="text-sm font-medium text-gray-700 mb-2">🎯 구간 선택 바</h5>
-                   <p className="text-xs text-gray-600 mb-3">
-                     녹색 바: 시작 지점 | 빨간 바: 종료 지점 | 파란 영역: 선택된 구간
+                                                                                                         {/* 구간 선택 바 */}
+                <div className="bg-white rounded-lg p-4 border-2 border-gray-200 mb-4">
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">🎯 구간 선택 바</h5>
+                    <p className="text-xs text-gray-600 mb-3">
+                      아래 슬라이더로 시작과 종료 지점을 설정하세요
+                    </p>
+                  </div>
+                  
+                  {/* 시작 시간 슬라이더 */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-600 mb-2">
+                      🎬 시작 시간: {formatTime(startTime)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max={videoDuration}
+                      value={startTime}
+                      onChange={(e) => {
+                        const newStartTime = parseFloat(e.target.value)
+                        setStartTime(newStartTime)
+                        if (videoRef.current) {
+                          videoRef.current.currentTime = newStartTime
+                        }
+                      }}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  
+                  {/* 종료 시간 슬라이더 */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-600 mb-2">
+                      ⏹️ 종료 시간: {formatTime(endTime)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max={videoDuration}
+                      value={endTime}
+                      onChange={(e) => {
+                        const newEndTime = parseFloat(e.target.value)
+                        setEndTime(newEndTime)
+                        if (videoRef.current) {
+                          videoRef.current.currentTime = newEndTime
+                        }
+                      }}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  
+                  {/* 시간 표시 */}
+                  <div className="flex justify-between text-xs text-gray-600 mb-4">
+                    <span>0:00</span>
+                    <span>{formatTime(videoDuration)}</span>
+                  </div>
+                  
+                  {/* 빠른 설정 버튼 */}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStartTime(0)
+                        setEndTime(Math.min(30, videoDuration))
+                        if (videoRef.current) {
+                          videoRef.current.currentTime = 0
+                        }
+                      }}
+                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                    >
+                      처음 30초
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStartTime(0)
+                        setEndTime(Math.min(60, videoDuration))
+                        if (videoRef.current) {
+                          videoRef.current.currentTime = 0
+                        }
+                      }}
+                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                    >
+                      처음 1분
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const midPoint = videoDuration / 2
+                        setStartTime(Math.max(0, midPoint - 30))
+                        setEndTime(Math.min(videoDuration, midPoint + 30))
+                        if (videoRef.current) {
+                          videoRef.current.currentTime = midPoint
+                        }
+                      }}
+                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
+                    >
+                      중간 1분
+                    </button>
+                  </div>
+                </div>
+
+                         {/* 실시간 비용 표시 */}
+             {getCurrentCost() && (
+               <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-2 border-green-200 mb-4">
+                 <h5 className="text-lg font-bold text-green-800 mb-3 text-center">
+                   💰 실시간 비용 계산
+                 </h5>
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-4">
+                   <div className="bg-white rounded-lg p-3 border border-green-200">
+                     <p className="text-sm text-gray-600 mb-1">API 사용료</p>
+                     <p className="text-lg font-bold text-green-600">
+                       ${getCurrentCost()?.apiCost} (₩{CostCalculator.convertToKRW(getCurrentCost()?.apiCost || 0)})
+                     </p>
+                   </div>
+                   <div className="bg-white rounded-lg p-3 border border-blue-200">
+                     <p className="text-sm text-gray-600 mb-1">플랫폼 수수료</p>
+                     <p className="text-lg font-bold text-blue-600">
+                       ${getCurrentCost()?.platformFee} (₩{CostCalculator.convertToKRW(getCurrentCost()?.platformFee || 0)})
+                     </p>
+                   </div>
+                   <div className="bg-white rounded-lg p-3 border border-purple-200">
+                     <p className="text-sm text-gray-600 mb-1">총 비용</p>
+                     <p className="text-xl font-bold text-purple-600">
+                       ${getCurrentCost()?.totalCost} (₩{CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0)})
+                     </p>
+                   </div>
+                 </div>
+                 <div className="text-center">
+                   <p className="text-sm text-gray-600">
+                     분석 구간: {formatTime(getRangeDuration())} • 
+                     파일 타입: {videoFile?.name.endsWith('.rofl') ? 'ROFL' : '영상'}
                    </p>
                  </div>
-                 
-                 {/* 구간 선택 슬라이더 */}
-                 <div className="relative mb-6">
-                   <div className="relative h-8 bg-gray-200 rounded-lg overflow-hidden">
-                     {/* 선택된 구간 표시 */}
-                     <div 
-                       className="absolute h-full bg-blue-400 opacity-60"
-                       style={{
-                         left: `${(startTime / videoDuration) * 100}%`,
-                         width: `${((endTime - startTime) / videoDuration) * 100}%`
-                       }}
-                     />
-                     
-                     {/* 시작 지점 슬라이더 */}
-                     <input
-                       type="range"
-                       min="0"
-                       max={videoDuration}
-                       value={startTime}
-                       onChange={(e) => {
-                         const newStartTime = parseFloat(e.target.value)
-                         setStartTime(newStartTime)
-                         if (videoRef.current) {
-                           videoRef.current.currentTime = newStartTime
-                         }
-                       }}
-                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10"
-                     />
-                     
-                     {/* 종료 지점 슬라이더 */}
-                     <input
-                       type="range"
-                       min="0"
-                       max={videoDuration}
-                       value={endTime}
-                       onChange={(e) => {
-                         const newEndTime = parseFloat(e.target.value)
-                         setEndTime(newEndTime)
-                         if (videoRef.current) {
-                           videoRef.current.currentTime = newEndTime
-                         }
-                       }}
-                       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-20"
-                     />
-                     
-                     {/* 시작 지점 마커 */}
-                     <div 
-                       className="absolute top-0 h-full w-1 bg-green-500 cursor-pointer z-30"
-                       style={{ left: `${(startTime / videoDuration) * 100}%` }}
-                       onClick={() => {
-                         if (videoRef.current) {
-                           videoRef.current.currentTime = startTime
-                         }
-                       }}
-                     />
-                     
-                     {/* 종료 지점 마커 */}
-                     <div 
-                       className="absolute top-0 h-full w-1 bg-red-500 cursor-pointer z-30"
-                       style={{ left: `${(endTime / videoDuration) * 100}%` }}
-                       onClick={() => {
-                         if (videoRef.current) {
-                           videoRef.current.currentTime = endTime
-                         }
-                       }}
-                     />
-                   </div>
-                   
-                   {/* 시간 표시 */}
-                   <div className="flex justify-between text-xs text-gray-600 mt-1">
-                     <span>0:00</span>
-                     <span>{formatTime(videoDuration)}</span>
-                   </div>
-                 </div>
-                 
-                 {/* 빠른 설정 버튼 */}
-                 <div className="flex flex-wrap gap-2">
-                   <button
-                     type="button"
-                     onClick={() => {
-                       setStartTime(0)
-                       setEndTime(Math.min(30, videoDuration))
-                       if (videoRef.current) {
-                         videoRef.current.currentTime = 0
-                       }
-                     }}
-                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                   >
-                     처음 30초
-                   </button>
-                   <button
-                     type="button"
-                     onClick={() => {
-                       setStartTime(0)
-                       setEndTime(Math.min(60, videoDuration))
-                       if (videoRef.current) {
-                         videoRef.current.currentTime = 0
-                       }
-                     }}
-                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                   >
-                     처음 1분
-                   </button>
-                   <button
-                     type="button"
-                     onClick={() => {
-                       const midPoint = videoDuration / 2
-                       setStartTime(Math.max(0, midPoint - 30))
-                       setEndTime(Math.min(videoDuration, midPoint + 30))
-                       if (videoRef.current) {
-                         videoRef.current.currentTime = midPoint
-                       }
-                     }}
-                     className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                   >
-                     중간 1분
-                   </button>
-                 </div>
                </div>
+             )}
 
-            {/* 구간 경고 */}
-            {getRangeDuration() > 60 && (
-              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-700">
-                  ⚠️ 분석 구간이 1분을 초과합니다. 비용 절약을 위해 더 짧은 구간을 선택하는 것을 권장합니다.
-                </p>
-              </div>
-            )}
+             {/* 구간 경고 */}
+             {getRangeDuration() > 60 && (
+               <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                 <p className="text-sm text-yellow-700">
+                   ⚠️ 분석 구간이 1분을 초과합니다. 비용 절약을 위해 더 짧은 구간을 선택하는 것을 권장합니다.
+                 </p>
+               </div>
+             )}
           </div>
         )}
 
@@ -502,14 +529,14 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </p>
         </div>
 
-                 {/* 제출 버튼 */}
-         <button
-           type="submit"
-           disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0}
-           className="court-button w-full text-lg py-4"
-         >
-           {isLoading ? '🔍 분석 중...' : '💰 비용 확인 및 결제'}
-         </button>
+                                   {/* 결제 버튼 */}
+          <button
+            type="submit"
+            disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0 || !getCurrentCost()}
+            className="court-button w-full text-lg py-4"
+          >
+            {isLoading ? '🔍 분석 중...' : `💳 결제하기 (${getCurrentCost() ? `₩${CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0)}` : '비용 계산 중...'})`}
+          </button>
       </form>
 
       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
