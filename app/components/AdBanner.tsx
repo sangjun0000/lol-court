@@ -11,18 +11,15 @@ interface AdBannerProps {
 
 export default function AdBanner({ adSlot, adFormat = 'auto', className = '', style = {} }: AdBannerProps) {
   const [showAds, setShowAds] = useState(false)
-  const [adsenseClientId, setAdsenseClientId] = useState('')
 
   useEffect(() => {
     // 환경 변수에서 광고 설정 가져오기
     const shouldShowAds = process.env.NEXT_PUBLIC_SHOW_ADS === 'true'
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID || ''
     
     setShowAds(shouldShowAds)
-    setAdsenseClientId(clientId)
 
     // Google AdSense 로드
-    if (typeof window !== 'undefined' && (window as any).adsbygoogle && shouldShowAds && clientId) {
+    if (typeof window !== 'undefined' && (window as any).adsbygoogle && shouldShowAds) {
       try {
         (window as any).adsbygoogle.push({})
       } catch (error) {
@@ -45,7 +42,7 @@ export default function AdBanner({ adSlot, adFormat = 'auto', className = '', st
   }
 
   // 광고가 비활성화된 경우 빈 div 반환
-  if (!showAds || !adsenseClientId) {
+  if (!showAds) {
     return (
       <div 
         className={`ad-placeholder ${className}`}
@@ -76,7 +73,7 @@ export default function AdBanner({ adSlot, adFormat = 'auto', className = '', st
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client={adsenseClientId}
+        data-ad-client="ca-pub-9980072159270854"
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"

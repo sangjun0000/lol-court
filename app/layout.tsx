@@ -23,7 +23,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const adsenseClientId = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT_ID
   const analyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID
   const showAds = process.env.NEXT_PUBLIC_SHOW_ADS === 'true'
 
@@ -31,10 +30,10 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         {/* Google AdSense */}
-        {showAds && adsenseClientId && (
+        {showAds && (
           <Script
             async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9980072159270854"
             crossOrigin="anonymous"
             strategy="afterInteractive"
           />
