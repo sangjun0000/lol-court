@@ -105,6 +105,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       }
       
       const url = URL.createObjectURL(file)
+      console.log('일반 영상 업로드됨:', file.name, 'URL:', url)
       setVideoUrl(url)
       // 영상 로드 후 기본 구간 설정 (처음 30초)
       setTimeout(() => {
@@ -463,6 +464,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         )}
 
         {/* 일반 영상 미리보기 및 구간 선택 */}
+        {(() => { console.log('조건 체크:', { videoUrl, fileName: videoFile?.name, isRofl: videoFile?.name.endsWith('.rofl') }); return null; })()}
         {videoUrl && !videoFile?.name.endsWith('.rofl') && (
           <div className="bg-gray-100 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-2">
