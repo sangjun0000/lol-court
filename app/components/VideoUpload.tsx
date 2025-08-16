@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { CostCalculator, CostBreakdown } from '@/app/lib/costCalculator'
+import PaymentModal from './PaymentModal'
 
 export interface VideoUploadData {
   videoFile: File
@@ -26,6 +28,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [customDescription, setCustomDescription] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const [isSelectingRange, setIsSelectingRange] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [calculatedCost, setCalculatedCost] = useState<CostBreakdown | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -96,6 +100,23 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (videoFile && customDescription.trim()) {
+      // 비용 계산
+      const duration = getRangeDuration()
+      const fileType = videoFile.name.endsWith('.rofl') ? 'rofl' : 'video'
+      
+      const cost = CostCalculator.calculateCost({
+        duration,
+        fileType,
+        quality: 'standard'
+      })
+      
+      setCalculatedCost(cost)
+      setShowPaymentModal(true)
+    }
+  }
+
+  const handlePaymentConfirm = () => {
+    if (videoFile && customDescription.trim() && calculatedCost) {
       // 사용자 설명에서 캐릭터 이름 추출
       const characterNames = extractCharacterNames(customDescription)
       
@@ -107,6 +128,9 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         analysisType: 'custom',
         customDescription
       })
+      
+      setShowPaymentModal(false)
+      setCalculatedCost(null)
     }
   }
 
@@ -403,7 +427,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
            disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0}
            className="court-button w-full text-lg py-4"
          >
-           {isLoading ? '🔍 분석 중...' : '⚖️ 판결 받기'}
+           {isLoading ? '🔍 분석 중...' : '💰 비용 확인 및 결제'}
          </button>
       </form>
 
@@ -415,7 +439,19 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
           4. AI가 선택한 구간을 분석하여 객관적인 판결을 내립니다
         </p>
-      </div>
-    </div>
-  )
-}
+             </div>
+
+       {/* 결제 모달 */}
+       {calculatedCost && (
+         <PaymentModal
+           isOpen={showPaymentModal}
+           onClose={() => setShowPaymentModal(false)}
+           onConfirm={handlePaymentConfirm}
+           cost={calculatedCost}
+           duration={getRangeDuration()}
+           fileName={videoFile?.name || ''}
+         />
+       )}
+     </div>
+   )
+ }
