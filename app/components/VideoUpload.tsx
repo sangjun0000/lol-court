@@ -34,7 +34,16 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [isConverting, setIsConverting] = useState<boolean>(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
+    // 파일 크기 에러 처리
+    if (rejectedFiles.length > 0) {
+      const error = rejectedFiles[0].errors[0]
+      if (error.code === 'file-too-large') {
+        alert('파일이 너무 큽니다. 50MB 이하의 파일을 업로드해주세요.')
+        return
+      }
+    }
+    
     const file = acceptedFiles[0]
     if (file && (file.type.startsWith('video/') || file.name.endsWith('.rofl'))) {
       setVideoFile(file)
@@ -123,7 +132,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       'application/octet-stream': ['.rofl']
     },
     maxFiles: 1,
-    maxSize: 500 * 1024 * 1024,
+    maxSize: 50 * 1024 * 1024, // 50MB로 줄임
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false)
   })
@@ -305,7 +314,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                   영상을 여기에 드래그하거나 클릭하여 업로드
                 </p>
                 <p className="text-sm text-gray-500">
-                  MP4, AVI, MOV, MKV, WebM, ROFL 형식 지원 (최대 500MB)
+                                     MP4, AVI, MOV, MKV, WebM, ROFL 형식 지원 (최대 50MB)
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   💡 ROFL 파일은 리그 오브 레전드 리플레이 파일입니다
