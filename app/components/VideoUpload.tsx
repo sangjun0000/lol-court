@@ -30,8 +30,17 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
-    if (file && file.type.startsWith('video/')) {
+    if (file && (file.type.startsWith('video/') || file.name.endsWith('.rofl'))) {
       setVideoFile(file)
+      
+      // rofl 파일인 경우 특별 처리
+      if (file.name.endsWith('.rofl')) {
+        // rofl 파일은 직접 재생할 수 없으므로 안내 메시지 표시
+        setVideoUrl('')
+        alert('ROFL 파일이 업로드되었습니다. 이 파일은 리그 오브 레전드 리플레이 파일입니다. 구간 선택을 위해 영상 녹화 후 다시 업로드해주세요.')
+        return
+      }
+      
       const url = URL.createObjectURL(file)
       setVideoUrl(url)
       // 영상 로드 후 기본 구간 설정 (처음 30초)
@@ -46,10 +55,11 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
-      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.webm']
+      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.webm'],
+      'application/octet-stream': ['.rofl']
     },
     maxFiles: 1,
-    maxSize: 100 * 1024 * 1024, // 100MB
+    maxSize: 500 * 1024 * 1024, // 500MB (rofl 파일이 클 수 있음)
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false)
   })
@@ -166,7 +176,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                   영상을 여기에 드래그하거나 클릭하여 업로드
                 </p>
                 <p className="text-sm text-gray-500">
-                  MP4, AVI, MOV, MKV, WebM 형식 지원 (최대 100MB)
+                  MP4, AVI, MOV, MKV, WebM, ROFL 형식 지원 (최대 500MB)
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  💡 ROFL 파일은 리그 오브 레전드 리플레이 파일입니다
                 </p>
               </div>
             ) : (
@@ -196,6 +209,33 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
             )}
           </div>
         </div>
+
+        {/* ROFL 파일 안내 */}
+        {videoFile && videoFile.name.endsWith('.rofl') && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-semibold text-yellow-800 mb-2">🎮 ROFL 파일 업로드됨</h4>
+            <div className="space-y-3">
+              <p className="text-sm text-yellow-700">
+                <strong>ROFL 파일</strong>은 리그 오브 레전드 리플레이 파일입니다.
+              </p>
+              <div className="bg-white rounded-lg p-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">📋 다음 단계:</p>
+                <ol className="text-sm text-gray-600 space-y-1">
+                  <li>1. 리그 오브 레전드 클라이언트에서 이 ROFL 파일을 재생하세요</li>
+                  <li>2. 분석하고 싶은 구간을 녹화하세요 (OBS, Bandicam 등 사용)</li>
+                  <li>3. 녹화된 영상 파일을 다시 업로드하세요</li>
+                  <li>4. 업로드된 영상에서 구간을 선택하여 분석하세요</li>
+                </ol>
+              </div>
+              <div className="bg-blue-50 rounded-lg p-3">
+                <p className="text-sm font-medium text-blue-700 mb-1">💡 팁:</p>
+                <p className="text-sm text-blue-600">
+                  녹화 시 30초-2분 정도의 짧은 구간을 선택하면 분석 비용을 절약할 수 있습니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 영상 미리보기 및 구간 선택 */}
         {videoUrl && (
