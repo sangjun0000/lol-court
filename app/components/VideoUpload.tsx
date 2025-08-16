@@ -284,86 +284,106 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                  </div>
                </div>
              ) : (
-               // 일반 영상 미리보기
-               <video
-                 ref={videoRef}
-                 src={videoUrl}
-                 controls
-                 className="w-full rounded-lg mb-4"
-                 onLoadedMetadata={handleVideoLoad}
-                 onTimeUpdate={handleTimeUpdate}
-               />
+                               // 일반 영상 미리보기
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  controls
+                  autoPlay
+                  muted
+                  className="w-full rounded-lg mb-4"
+                  onLoadedMetadata={handleVideoLoad}
+                  onTimeUpdate={handleTimeUpdate}
+                />
              )}
             
-                         {/* 구간 선택 안내 */}
-             <div className="bg-blue-50 rounded-lg p-3 mb-4">
-               <p className="text-sm text-blue-700 font-medium mb-2">
-                 🎯 분석 구간 선택 방법:
-               </p>
-               <ul className="text-sm text-blue-600 space-y-1">
-                 {videoFile?.name.endsWith('.rofl') ? (
-                   <>
-                     <li>• 게임 시간을 기준으로 분석하고 싶은 구간을 선택하세요</li>
-                     <li>• 시작 시간에서 "구간 시작" 버튼을 클릭하세요</li>
-                     <li>• 종료 시간에서 "구간 종료" 버튼을 클릭하세요</li>
-                     <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
-                   </>
-                 ) : (
-                   <>
-                     <li>• 영상을 재생하여 분석하고 싶은 구간을 찾으세요</li>
-                     <li>• 시작 지점에서 "구간 시작" 버튼을 클릭하세요</li>
-                     <li>• 종료 지점에서 "구간 종료" 버튼을 클릭하세요</li>
-                     <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
-                   </>
-                 )}
-               </ul>
-             </div>
-
-                         {/* 구간 선택 버튼 */}
-             <div className="flex gap-2 mb-4">
-               <button
-                 type="button"
-                 onClick={handleRangeSelectionStart}
-                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-               >
-                 🎬 구간 시작
-               </button>
-               <button
-                 type="button"
-                 onClick={handleRangeSelectionEnd}
-                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-               >
-                 ⏹️ 구간 종료
-               </button>
-               <button
-                 type="button"
-                 onClick={() => {
-                   setStartTime(0)
-                   setEndTime(Math.min(60, videoDuration))
-                 }}
-                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-               >
-                 {videoFile?.name.endsWith('.rofl') ? '🔄 처음 1분' : '🔄 처음 30초'}
-               </button>
-             </div>
-
-            {/* 구간 정보 표시 */}
-            <div className="bg-white rounded-lg p-3 border">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-sm text-gray-600">시작 시간</p>
-                  <p className="text-lg font-bold text-green-600">{formatTime(startTime)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">종료 시간</p>
-                  <p className="text-lg font-bold text-red-600">{formatTime(endTime)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">분석 구간</p>
-                  <p className="text-lg font-bold text-blue-600">{formatTime(getRangeDuration())}</p>
-                </div>
+                                                   {/* 구간 선택 안내 */}
+              <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-700 font-medium mb-2">
+                  🎯 분석 구간 선택 방법:
+                </p>
+                <ul className="text-sm text-blue-600 space-y-1">
+                  {videoFile?.name.endsWith('.rofl') ? (
+                    <>
+                      <li>• 게임 시간을 기준으로 분석하고 싶은 구간을 선택하세요</li>
+                      <li>• 시작 시간에서 "구간 시작" 버튼을 클릭하세요</li>
+                      <li>• 종료 시간에서 "구간 종료" 버튼을 클릭하세요</li>
+                      <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>• 영상이 자동으로 재생됩니다 (음소거 상태)</li>
+                      <li>• 원하는 구간을 찾으면 "구간 시작" 버튼을 클릭하세요</li>
+                      <li>• 구간이 끝나는 지점에서 "구간 종료" 버튼을 클릭하세요</li>
+                      <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
+                    </>
+                  )}
+                </ul>
               </div>
-            </div>
+
+                                                   {/* 구간 선택 버튼 */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={handleRangeSelectionStart}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                >
+                  🎬 현재 지점을 시작으로 설정
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRangeSelectionEnd}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                >
+                  ⏹️ 현재 지점을 종료로 설정
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartTime(0)
+                    setEndTime(Math.min(60, videoDuration))
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  {videoFile?.name.endsWith('.rofl') ? '🔄 처음 1분으로 설정' : '🔄 처음 30초로 설정'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (videoRef.current) {
+                      videoRef.current.currentTime = startTime
+                    }
+                  }}
+                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
+                >
+                  📍 시작 지점으로 이동
+                </button>
+              </div>
+
+                         {/* 구간 정보 표시 */}
+             <div className="bg-gradient-to-r from-green-50 to-red-50 rounded-lg p-4 border-2 border-gray-200">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                 <div className="bg-white rounded-lg p-3 border border-green-200">
+                   <p className="text-sm text-gray-600 mb-1">🎬 시작 시간</p>
+                   <p className="text-xl font-bold text-green-600">{formatTime(startTime)}</p>
+                 </div>
+                 <div className="bg-white rounded-lg p-3 border border-red-200">
+                   <p className="text-sm text-gray-600 mb-1">⏹️ 종료 시간</p>
+                   <p className="text-xl font-bold text-red-600">{formatTime(endTime)}</p>
+                 </div>
+                 <div className="bg-white rounded-lg p-3 border border-blue-200">
+                   <p className="text-sm text-gray-600 mb-1">📊 분석 구간</p>
+                   <p className="text-xl font-bold text-blue-600">{formatTime(getRangeDuration())}</p>
+                 </div>
+               </div>
+               <div className="mt-3 text-center">
+                 <p className="text-sm text-gray-600">
+                   💡 현재 영상 시간: <span className="font-medium text-purple-600">
+                     {videoRef.current ? formatTime(videoRef.current.currentTime) : '0:00'}
+                   </span>
+                 </p>
+               </div>
+             </div>
 
             {/* 슬라이더로 세밀 조정 */}
             <div className="mt-4 space-y-3">
