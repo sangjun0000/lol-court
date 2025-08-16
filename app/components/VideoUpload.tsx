@@ -66,7 +66,9 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                   Math.random() * 10 + 3, // 3-13%씩 증가
                   remaining * 0.3 // 남은 진행률의 30%까지만 증가
                 )
-                return Math.min(prev + increment, 100)
+                const newProgress = prev + increment
+                // 99% 이상이면 정확히 100%로 설정
+                return newProgress >= 99 ? 100 : newProgress
               })
             }, 150) // 150ms마다 업데이트 (더 빠르게)
            
@@ -412,45 +414,42 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                         }}
                       />
                       
-                                             {/* ROFL 파일인 경우 진행률 표시 */}
-                       {videoUrl === 'rofl-file' && (
-                         <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                           <div className="text-center text-white w-full max-w-md">
-                             <div className="text-6xl mb-4">⚡</div>
-                             <p className="text-lg font-medium mb-2">
-                               {isConverting ? '초고속 변환 중...' : '변환 완료!'}
-                             </p>
-                             <p className="text-sm text-gray-300 mb-4">
-                               {isConverting 
-                                 ? '게임 데이터를 초고속으로 추출하고 있습니다' 
-                                 : '영상이 준비되었습니다'
-                               }
-                             </p>
-                             
-                             {/* 진행률 바 */}
-                             <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
-                               <div 
-                                 className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300 ease-out"
-                                 style={{ width: `${conversionProgress}%` }}
-                               ></div>
-                             </div>
-                             
-                             {/* 진행률 퍼센트 */}
-                             <div className="text-2xl font-bold text-green-400 mb-2">
-                               {conversionProgress}%
-                             </div>
-                             
-                             {/* 상태 메시지 */}
-                             <div className="text-sm text-gray-400">
-                               {conversionProgress < 20 && '파일 분석 중...'}
-                               {conversionProgress >= 20 && conversionProgress < 50 && '게임 데이터 추출 중...'}
-                               {conversionProgress >= 50 && conversionProgress < 80 && '영상 생성 중...'}
-                               {conversionProgress >= 80 && conversionProgress < 100 && '최종 처리 중...'}
-                               {conversionProgress === 100 && '✅ 완료!'}
-                             </div>
-                           </div>
-                         </div>
-                       )}
+                                                                   {/* ROFL 파일인 경우 진행률 표시 */}
+                      {videoUrl === 'rofl-file' && isConverting && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                          <div className="text-center text-white w-full max-w-md">
+                            <div className="text-6xl mb-4">⚡</div>
+                            <p className="text-lg font-medium mb-2">
+                              초고속 변환 중...
+                            </p>
+                            <p className="text-sm text-gray-300 mb-4">
+                              게임 데이터를 초고속으로 추출하고 있습니다
+                            </p>
+                            
+                            {/* 진행률 바 */}
+                            <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
+                              <div 
+                                className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300 ease-out"
+                                style={{ width: `${conversionProgress}%` }}
+                              ></div>
+                            </div>
+                            
+                            {/* 진행률 퍼센트 */}
+                            <div className="text-2xl font-bold text-green-400 mb-2">
+                              {conversionProgress}%
+                            </div>
+                            
+                            {/* 상태 메시지 */}
+                            <div className="text-sm text-gray-400">
+                              {conversionProgress < 20 && '파일 분석 중...'}
+                              {conversionProgress >= 20 && conversionProgress < 50 && '게임 데이터 추출 중...'}
+                              {conversionProgress >= 50 && conversionProgress < 80 && '영상 생성 중...'}
+                              {conversionProgress >= 80 && conversionProgress < 100 && '최종 처리 중...'}
+                              {conversionProgress >= 100 && '✅ 완료!'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
                     {/* ROFL 전용 안내 */}
