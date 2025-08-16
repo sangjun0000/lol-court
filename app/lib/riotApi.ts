@@ -76,8 +76,8 @@ export class RiotApiClient {
       
       // 타임라인에서 특정 시간대 이벤트 필터링
       const events = timeline.info.frames
-        .flatMap(frame => frame.events)
-        .filter(event => {
+        .flatMap((frame: any) => frame.events || [])
+        .filter((event: any) => {
           const eventTime = event.timestamp / 1000 // 초 단위로 변환
           return eventTime >= startTime && eventTime <= endTime
         })
@@ -98,11 +98,11 @@ export class RiotApiClient {
   // 이벤트 분석
   private analyzeEvents(events: any[]) {
     const analysis = {
-      kills: events.filter(e => e.type === 'CHAMPION_KILL'),
-      skillUses: events.filter(e => e.type === 'SKILL_LEVEL_UP'),
-      itemPurchases: events.filter(e => e.type === 'ITEM_PURCHASED'),
-      objectives: events.filter(e => e.type === 'ELITE_MONSTER_KILL'),
-      positions: events.filter(e => e.type === 'POSITION')
+      kills: events.filter((e: any) => e.type === 'CHAMPION_KILL'),
+      skillUses: events.filter((e: any) => e.type === 'SKILL_LEVEL_UP'),
+      itemPurchases: events.filter((e: any) => e.type === 'ITEM_PURCHASED'),
+      objectives: events.filter((e: any) => e.type === 'ELITE_MONSTER_KILL'),
+      positions: events.filter((e: any) => e.type === 'POSITION')
     }
 
     return {
@@ -124,7 +124,7 @@ export class RiotApiClient {
       objective: 0
     }
 
-    events.forEach(event => {
+    events.forEach((event: any) => {
       switch (event.type) {
         case 'CHAMPION_KILL':
           actions.aggressive++
