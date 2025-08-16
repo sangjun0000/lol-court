@@ -32,21 +32,49 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [calculatedCost, setCalculatedCost] = useState<CostBreakdown | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (file && (file.type.startsWith('video/') || file.name.endsWith('.rofl'))) {
       setVideoFile(file)
       
-             // rofl 파일인 경우 특별 처리
-       if (file.name.endsWith('.rofl')) {
-         // ROFL 파일도 구간 선택 가능하도록 처리
-         setVideoUrl('rofl-file')
-         // ROFL 파일의 경우 기본 게임 시간 설정 (20분 게임 기준)
-         setVideoDuration(1200) // 20분 = 1200초
-         setStartTime(0)
-         setEndTime(60) // 기본적으로 처음 1분 분석
-         return
-       }
+      // rofl 파일인 경우 특별 처리
+      if (file.name.endsWith('.rofl')) {
+        // ROFL 파일도 구간 선택 가능하도록 처리
+        setVideoUrl('rofl-file')
+        // ROFL 파일의 경우 기본 게임 시간 설정 (20분 게임 기준)
+        setVideoDuration(1200) // 20분 = 1200초
+        setStartTime(0)
+        setEndTime(60) // 기본적으로 처음 1분 분석
+        
+        // ROFL 파일을 영상으로 변환
+        try {
+          const formData = new FormData()
+          formData.append('roflFile', file)
+          
+          const response = await fetch('/api/convert-rofl', {
+            method: 'POST',
+            body: formData
+          })
+          
+          if (response.ok) {
+            const result = await response.json()
+            if (result.success && result.videoUrl) {
+              setVideoUrl(result.videoUrl)
+              // 변환된 영상이 로드되면 자동 재생
+              setTimeout(() => {
+                if (videoRef.current) {
+                  videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
+                }
+              }, 1000)
+            }
+          }
+        } catch (error) {
+          console.error('ROFL 변환 실패:', error)
+          // 변환 실패 시에도 기본 ROFL UI는 유지
+        }
+        
+        return
+      }
       
       const url = URL.createObjectURL(file)
       setVideoUrl(url)
@@ -309,20 +337,76 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                {videoFile?.name.endsWith('.rofl') ? '🎮 ROFL 파일 구간 선택' : '🎥 영상 미리보기 및 구간 선택'}
              </h4>
              
-             {videoFile?.name.endsWith('.rofl') ? (
-               // ROFL 파일 구간 선택 UI
-               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                 <div className="text-center">
-                   <div className="text-4xl mb-2">🎮</div>
-                   <p className="text-lg font-medium text-yellow-800 mb-2">
-                     ROFL 파일: {videoFile.name}
-                   </p>
-                   <p className="text-sm text-yellow-700">
-                     게임 시간을 기준으로 분석 구간을 선택하세요
-                   </p>
-                 </div>
-               </div>
-             ) : (
+                           {videoFile?.name.endsWith('.rofl') ? (
+                // ROFL 파일 구간 선택 UI - 영상 재생 포함
+                <div className="space-y-4">
+                  {/* ROFL 파일 정보 */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">🎮</div>
+                      <p className="text-lg font-medium text-yellow-800 mb-2">
+                        ROFL 파일: {videoFile.name}
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        게임 시간을 기준으로 분석 구간을 선택하세요
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* ROFL 영상 재생 영역 */}
+                  <div className="bg-gray-900 rounded-lg p-4">
+                    <div className="text-center mb-3">
+                      <p className="text-white text-sm font-medium">🎬 게임 리플레이 영상</p>
+                      <p className="text-gray-300 text-xs">ROFL 파일에서 추출된 게임 영상</p>
+                    </div>
+                    
+                    {/* 임시 영상 플레이어 (실제로는 ROFL에서 추출된 영상이 들어갈 예정) */}
+                    <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+                      <video
+                        ref={videoRef}
+                        src={videoUrl === 'rofl-file' ? undefined : videoUrl}
+                        controls
+                        autoPlay
+                        muted
+                        playsInline
+                        preload="auto"
+                        className="w-full h-full object-contain"
+                        onLoadedMetadata={handleVideoLoad}
+                        onTimeUpdate={handleTimeUpdate}
+                        onCanPlay={() => {
+                          if (videoRef.current && videoRef.current.paused) {
+                            videoRef.current.play().catch(e => console.log('ROFL 영상 재생 실패:', e))
+                          }
+                        }}
+                      />
+                      
+                      {/* ROFL 파일인 경우 임시 메시지 */}
+                      {videoUrl === 'rofl-file' && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                          <div className="text-center text-white">
+                            <div className="text-6xl mb-4">🎮</div>
+                            <p className="text-lg font-medium mb-2">ROFL 파일 분석 중...</p>
+                            <p className="text-sm text-gray-300">
+                              게임 데이터를 추출하여 영상으로 변환하고 있습니다
+                            </p>
+                            <div className="mt-4">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* ROFL 전용 안내 */}
+                    <div className="mt-3 p-3 bg-blue-900 rounded-lg">
+                      <p className="text-white text-sm">
+                        💡 <strong>ROFL 파일 특징:</strong> 게임의 모든 데이터(위치, 스킬 사용, 데미지 등)를 포함하여 
+                        더 정확한 분석이 가능합니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
                                // 일반 영상 미리보기
                                  <video
                    ref={videoRef}
