@@ -46,32 +46,35 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         setStartTime(0)
         setEndTime(60) // 기본적으로 처음 1분 분석
         
-        // ROFL 파일을 영상으로 변환
-        try {
-          const formData = new FormData()
-          formData.append('roflFile', file)
-          
-          const response = await fetch('/api/convert-rofl', {
-            method: 'POST',
-            body: formData
-          })
-          
-          if (response.ok) {
-            const result = await response.json()
-            if (result.success && result.videoUrl) {
-              setVideoUrl(result.videoUrl)
-              // 변환된 영상이 로드되면 자동 재생
-              setTimeout(() => {
-                if (videoRef.current) {
-                  videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
-                }
-              }, 1000)
-            }
-          }
-        } catch (error) {
-          console.error('ROFL 변환 실패:', error)
-          // 변환 실패 시에도 기본 ROFL UI는 유지
-        }
+                 // ROFL 파일을 영상으로 변환
+         try {
+           const formData = new FormData()
+           formData.append('roflFile', file)
+           
+           const response = await fetch('/api/convert-rofl', {
+             method: 'POST',
+             body: formData
+           })
+           
+           if (response.ok) {
+             const result = await response.json()
+             if (result.success && result.videoUrl) {
+               // 변환된 영상 URL 설정
+               setVideoUrl(result.videoUrl)
+               
+               // 영상 로드 후 자동 재생
+               setTimeout(() => {
+                 if (videoRef.current) {
+                   videoRef.current.load() // 영상 다시 로드
+                   videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
+                 }
+               }, 1500)
+             }
+           }
+         } catch (error) {
+           console.error('ROFL 변환 실패:', error)
+           // 변환 실패 시에도 기본 ROFL UI는 유지
+         }
         
         return
       }
