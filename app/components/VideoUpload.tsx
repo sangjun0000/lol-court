@@ -95,9 +95,18 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                setTimeout(() => {
                  if (videoRef.current) {
                    videoRef.current.load() // 영상 다시 로드
-                   videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
+                   // 여러 번 재생 시도
+                   const playAttempts = [50, 200, 500, 1000]
+                   playAttempts.forEach(delay => {
+                     setTimeout(() => {
+                       if (videoRef.current && videoRef.current.paused) {
+                         videoRef.current.muted = true
+                         videoRef.current.play().catch(e => console.log(`ROFL 영상 재생 시도 ${delay}ms 실패:`, e))
+                       }
+                     }, delay)
+                   })
                  }
-               }, 50) // 50ms로 단축
+               }, 100) // 100ms로 조정
              }
            }
          } catch (error) {
@@ -415,7 +424,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                       />
                       
                                                                    {/* ROFL 파일인 경우 진행률 표시 */}
-                      {videoUrl === 'rofl-file' && isConverting && (
+                      {videoFile?.name.endsWith('.rofl') && isConverting && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
                           <div className="text-center text-white w-full max-w-md">
                             <div className="text-6xl mb-4">⚡</div>
