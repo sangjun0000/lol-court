@@ -6,8 +6,8 @@ export class RiotApiClient {
     asia: 'https://asia.api.riotgames.com'
   }
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey
+  constructor(apiKey?: string) {
+    this.apiKey = apiKey || process.env.RIOT_API_KEY || 'RGAPI-4684dd3e-30fb-443e-943f-57b8f3d17572'
   }
 
   // 소환사 정보 조회
@@ -163,5 +163,5 @@ export class RiotApiClient {
   }
 }
 
-// 싱글톤 인스턴스
-export const riotApi = new RiotApiClient('RGAPI-4684dd3e-30fb-443e-943f-57b8f3d17572')
+// 싱글톤 인스턴스 (환경변수 사용)
+export const riotApi = new RiotApiClient()
