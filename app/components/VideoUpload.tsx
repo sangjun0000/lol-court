@@ -62,13 +62,13 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                // 변환된 영상 URL 설정
                setVideoUrl(result.videoUrl)
                
-               // 영상 로드 후 자동 재생
-               setTimeout(() => {
-                 if (videoRef.current) {
-                   videoRef.current.load() // 영상 다시 로드
-                   videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
-                 }
-               }, 1500)
+                               // 영상 로드 후 자동 재생 (빠른 로딩)
+                setTimeout(() => {
+                  if (videoRef.current) {
+                    videoRef.current.load() // 영상 다시 로드
+                    videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
+                  }
+                }, 200) // 200ms로 단축
              }
            }
          } catch (error) {
@@ -383,21 +383,21 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                         }}
                       />
                       
-                      {/* ROFL 파일인 경우 임시 메시지 */}
-                      {videoUrl === 'rofl-file' && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                          <div className="text-center text-white">
-                            <div className="text-6xl mb-4">🎮</div>
-                            <p className="text-lg font-medium mb-2">ROFL 파일 분석 중...</p>
-                            <p className="text-sm text-gray-300">
-                              게임 데이터를 추출하여 영상으로 변환하고 있습니다
-                            </p>
-                            <div className="mt-4">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                                             {/* ROFL 파일인 경우 빠른 로딩 메시지 */}
+                       {videoUrl === 'rofl-file' && (
+                         <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                           <div className="text-center text-white">
+                             <div className="text-6xl mb-4">⚡</div>
+                             <p className="text-lg font-medium mb-2">빠른 변환 중...</p>
+                             <p className="text-sm text-gray-300">
+                               게임 데이터를 빠르게 추출하고 있습니다
+                             </p>
+                             <div className="mt-4">
+                               <div className="animate-pulse text-2xl">⚡</div>
+                             </div>
+                           </div>
+                         </div>
+                       )}
                     </div>
                     
                     {/* ROFL 전용 안내 */}
