@@ -185,6 +185,21 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
     }
   }
 
+  const calculateCost = (start: number, end: number) => {
+    const duration = end - start
+    const baseCost = Math.ceil(duration / 60) * 1000 // 1분당 1000원
+    const siteFee = 500 // 사이트 이용료
+    return baseCost + siteFee
+  }
+
+  const handleJudgeRequest = () => {
+    if (startTime < endTime) {
+      const cost = calculateCost(startTime, endTime)
+      alert(`선택한 구간으로 판결을 요청합니다.\n예상 비용: ${cost}원`)
+      // 여기에 실제 판결 로직 추가
+    }
+  }
+
   const handlePaymentConfirm = () => {
     if (videoFile && customDescription.trim() && calculatedCost) {
       const characterNames = extractCharacterNames(customDescription)
@@ -339,6 +354,104 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 <p className="text-sm text-blue-600">
                   ROFL 파일은 게임의 모든 데이터를 포함하므로 더 정확한 분석이 가능합니다.
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ROFL 파일 변환 결과 */}
+        {videoUrl && videoUrl !== 'rofl-data-file' && (
+          <div className="mt-6">
+            <h3 className="text-xl font-bold text-lol-gold mb-4">
+              🎬 ROFL 영상 변환 완료!
+            </h3>
+            
+            <div className="bg-gray-800 rounded-lg p-4 mb-4">
+              <video
+                id="rofl-video"
+                className="w-full h-64 object-cover rounded-lg"
+                controls
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                onCanPlay={() => console.log('ROFL 영상 재생 준비 완료')}
+                onError={(e) => console.error('ROFL 영상 재생 오류:', e)}
+              >
+                <source src={videoUrl} type="video/mp4" />
+                브라우저가 비디오를 지원하지 않습니다.
+              </video>
+            </div>
+
+            {/* 구간 선택 UI */}
+            <div className="bg-gray-800 rounded-lg p-4">
+              <h4 className="text-lg font-semibold text-white mb-3">
+                🎯 분석 구간 선택
+              </h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    시작 시간 (초)
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="300"
+                    value={startTime}
+                    onChange={(e) => setStartTime(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="text-center text-sm text-gray-400 mt-1">
+                    {Math.floor(startTime / 60)}:{(startTime % 60).toString().padStart(2, '0')}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    종료 시간 (초)
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="300"
+                    value={endTime}
+                    onChange={(e) => setEndTime(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="text-center text-sm text-gray-400 mt-1">
+                    {Math.floor(endTime / 60)}:{(endTime % 60).toString().padStart(2, '0')}
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <span className="text-sm text-gray-400">
+                    선택된 구간: {Math.floor(startTime / 60)}:{(startTime % 60).toString().padStart(2, '0')} - {Math.floor(endTime / 60)}:{(endTime % 60).toString().padStart(2, '0')}
+                  </span>
+                </div>
+
+                {/* 비용 계산 */}
+                {startTime < endTime && (
+                  <div className="bg-blue-900 bg-opacity-50 rounded-lg p-3">
+                    <div className="text-center text-white">
+                      <div className="text-lg font-semibold">
+                        💰 예상 비용: {calculateCost(startTime, endTime)}원
+                      </div>
+                      <div className="text-sm text-gray-300 mt-1">
+                        (API 사용료 + 사이트 이용료)
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 판결 요청 버튼 */}
+                <button
+                  onClick={handleJudgeRequest}
+                  disabled={startTime >= endTime}
+                  className="w-full bg-lol-gold text-black font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+                >
+                  ⚖️ 선택한 구간으로 판결받기
+                </button>
               </div>
             </div>
           </div>
