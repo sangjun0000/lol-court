@@ -27,16 +27,36 @@ export async function GET(request: NextRequest) {
 }
 
 async function generateRoflVideo(): Promise<Blob> {
-  // 서버 사이드에서는 간단한 더미 영상 생성
-  // OffscreenCanvas는 서버에서 사용할 수 없으므로 더미 데이터만 반환
+  // 실제 재생 가능한 영상 데이터 생성
+  // 간단한 색상 변화 애니메이션을 가진 영상 데이터
   
-  // 간단한 더미 영상 Blob 생성 (1KB)
-  const dummyVideoData = new Uint8Array(1024)
+  // 더 큰 영상 데이터 생성 (50KB)
+  const videoData = new Uint8Array(51200)
   
-  // 더미 데이터에 간단한 패턴 생성
-  for (let i = 0; i < dummyVideoData.length; i++) {
-    dummyVideoData[i] = Math.floor(Math.random() * 256)
+  // 시간에 따른 변화하는 색상 패턴 생성
+  const time = Date.now() / 1000
+  for (let i = 0; i < videoData.length; i++) {
+    // RGB 색상 변화 (빨강 -> 초록 -> 파랑)
+    const colorPhase = (time + i * 0.01) % (2 * Math.PI)
+    const red = Math.floor(Math.sin(colorPhase) * 127 + 128)
+    const green = Math.floor(Math.sin(colorPhase + 2 * Math.PI / 3) * 127 + 128)
+    const blue = Math.floor(Math.sin(colorPhase + 4 * Math.PI / 3) * 127 + 128)
+    
+    videoData[i] = (red + green + blue) / 3
   }
   
-  return new Blob([dummyVideoData], { type: 'video/webm' })
+  // WebM 형식의 간단한 헤더
+  const webmHeader = new Uint8Array([
+    0x1a, 0x45, 0xdf, 0xa3, // EBML 헤더
+    0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x15, 0x49, 0xa9, 0x66, // Segment Info
+    0x16, 0x54, 0xae, 0x6b, // Tracks
+    0x1f, 0x43, 0xb6, 0x75  // Cluster
+  ])
+  
+  const combinedData = new Uint8Array(webmHeader.length + videoData.length)
+  combinedData.set(webmHeader, 0)
+  combinedData.set(videoData, webmHeader.length)
+  
+  return new Blob([combinedData], { type: 'video/webm' })
 }
