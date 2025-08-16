@@ -10,11 +10,27 @@ export const metadata: Metadata = {
   description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템',
   keywords: '롤, 리그오브레전드, 롤문철, AI판결, 게임분석, 롤법원',
   authors: [{ name: '롤법원 개발팀' }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
     title: '롤법원 - AI 기반 롤문철',
     description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템',
     type: 'website',
     locale: 'ko_KR',
+    url: 'https://lol-court-dju7zom7s-sangjun0000s-projects.vercel.app',
+    siteName: '롤법원',
+  },
+  verification: {
+    google: 'google-site-verification-code', // Google Search Console에서 받은 코드
   },
 }
 
