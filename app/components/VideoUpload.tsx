@@ -77,12 +77,31 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       setVideoDuration(duration)
       // 기본적으로 처음 30초 또는 전체 영상 중 짧은 것
       setEndTime(Math.min(30, duration))
-      // 영상이 로드되면 자동 재생 (약간의 지연 후)
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.play().catch(e => console.log('자동 재생 실패:', e))
+      
+      // 영상 자동 재생 (여러 방법 시도)
+      const playVideo = async () => {
+        try {
+          if (videoRef.current) {
+            // 음소거 상태로 재생 시도
+            videoRef.current.muted = true
+            await videoRef.current.play()
+            console.log('영상 자동 재생 성공')
+          }
+        } catch (error) {
+          console.log('자동 재생 실패, 사용자 상호작용 필요:', error)
+          // 사용자가 영상을 클릭하면 재생되도록 이벤트 리스너 추가
+          if (videoRef.current) {
+            const playOnClick = () => {
+              videoRef.current?.play().catch(e => console.log('클릭 후 재생 실패:', e))
+              videoRef.current?.removeEventListener('click', playOnClick)
+            }
+            videoRef.current.addEventListener('click', playOnClick)
+          }
         }
-      }, 500)
+      }
+      
+      // 지연 후 재생 시도
+      setTimeout(playVideo, 1000)
     }
   }
 
@@ -305,16 +324,24 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                </div>
              ) : (
                                // 일반 영상 미리보기
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  controls
-                  autoPlay
-                  muted
-                  className="w-full rounded-lg mb-4"
-                  onLoadedMetadata={handleVideoLoad}
-                  onTimeUpdate={handleTimeUpdate}
-                />
+                                 <video
+                   ref={videoRef}
+                   src={videoUrl}
+                   controls
+                   autoPlay
+                   muted
+                   playsInline
+                   preload="auto"
+                   className="w-full rounded-lg mb-4 cursor-pointer"
+                   onLoadedMetadata={handleVideoLoad}
+                   onTimeUpdate={handleTimeUpdate}
+                   onCanPlay={() => {
+                     // 영상이 재생 가능할 때도 재생 시도
+                     if (videoRef.current && videoRef.current.paused) {
+                       videoRef.current.play().catch(e => console.log('CanPlay 후 재생 실패:', e))
+                     }
+                   }}
+                 />
              )}
             
                                                                                                        {/* 구간 선택 안내 */}
@@ -501,14 +528,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                </div>
              )}
 
-             {/* 구간 경고 */}
-             {getRangeDuration() > 60 && (
-               <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                 <p className="text-sm text-yellow-700">
-                   ⚠️ 분석 구간이 1분을 초과합니다. 비용 절약을 위해 더 짧은 구간을 선택하는 것을 권장합니다.
-                 </p>
-               </div>
-             )}
+             
           </div>
         )}
 
