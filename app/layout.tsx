@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   verification: {
     google: 'google-site-verification-code', // Google Search Console에서 받은 코드
   },
+  other: {
+    'google-adsense-account': 'ca-pub-9980072159270854',
+  },
 }
 
 export default function RootLayout({
@@ -45,6 +48,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        {/* Google AdSense 계정 메타태그 */}
+        <meta name="google-adsense-account" content="ca-pub-9980072159270854" />
+        
         {/* Google AdSense */}
         {showAds && (
           <Script
