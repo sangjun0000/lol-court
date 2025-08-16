@@ -5,6 +5,7 @@ import VideoUpload, { VideoUploadData } from './components/VideoUpload'
 import MatchHistorySearch, { MatchData } from './components/MatchHistorySearch'
 import VerdictDisplay from './components/VerdictDisplay'
 import Header from './components/Header'
+import { HeaderAd, SidebarAd, InlineAd, FooterAd } from './components/AdBanner'
 
 export interface Verdict {
   case: string
@@ -42,8 +43,6 @@ export default function Home() {
   const [verdict, setVerdict] = useState<Verdict | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'upload' | 'history'>('upload')
-
-
 
   const handleVideoUpload = async (data: VideoUploadData) => {
     setIsLoading(true)
@@ -98,7 +97,7 @@ export default function Home() {
     }
   }
 
-  const handleMatchHistoryAnalysis = async (matchData: MatchData, highlight: { startTime: number, endTime: number, description: string }) => {
+  const handleMatchHistoryAnalysis = async (matchData: MatchData, highlight: { startTime: number, endTime: number, description: string }, customDescription: string) => {
     setIsLoading(true)
     try {
       // 전적 데이터를 기반으로 영상 분석 요청 생성
@@ -108,7 +107,7 @@ export default function Home() {
         targetCharacters: [matchData.champion],
         startTime: highlight.startTime,
         endTime: highlight.endTime,
-        customDescription: `${matchData.champion}의 ${highlight.description} 구간 분석`
+        customDescription: customDescription
       }
 
       // 영상 분석 API 호출
@@ -164,78 +163,96 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-court-brown via-lol-gold to-yellow-400">
+      {/* 헤더 광고 */}
+      <HeaderAd />
+      
       <div className="container mx-auto px-4 py-8">
         <Header />
         
-                 {/* 탭 선택 */}
-         <div className="flex justify-center mb-8">
-           <div className="bg-white rounded-lg p-1 shadow-lg">
-             <button
-               onClick={() => setActiveTab('upload')}
-               className={`px-6 py-3 rounded-md font-medium transition-colors ${
-                 activeTab === 'upload'
-                   ? 'bg-lol-gold text-white shadow-md'
-                   : 'text-gray-600 hover:text-gray-800'
-               }`}
-             >
-               🎬 영상 판사
-             </button>
-             <button
-               onClick={() => setActiveTab('history')}
-               className={`px-6 py-3 rounded-md font-medium transition-colors ${
-                 activeTab === 'history'
-                   ? 'bg-lol-gold text-white shadow-md'
-                   : 'text-gray-600 hover:text-gray-800'
-               }`}
-             >
-               🔍 전적 검색
-             </button>
-           </div>
-         </div>
+        {/* 탭 선택 */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg p-1 shadow-lg">
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`px-6 py-3 rounded-md font-medium transition-colors ${
+                activeTab === 'upload'
+                  ? 'bg-lol-gold text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              🎬 직접 영상 올리기
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-6 py-3 rounded-md font-medium transition-colors ${
+                activeTab === 'history'
+                  ? 'bg-lol-gold text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              🔍 전적에서 영상찾기
+            </button>
+          </div>
+        </div>
 
-                 {/* 폼 영역 */}
-         <div className="max-w-4xl mx-auto mb-8">
-           {activeTab === 'upload' ? (
-             <VideoUpload onSubmit={handleVideoUpload} isLoading={isLoading} />
-           ) : (
-             <MatchHistorySearch onVideoAnalysisRequest={handleMatchHistoryAnalysis} />
-           )}
-         </div>
+        {/* 메인 콘텐츠 영역 */}
+        <div className="flex gap-6">
+          {/* 사이드바 광고 */}
+          <SidebarAd />
+          
+          {/* 메인 콘텐츠 */}
+          <div className="flex-1">
+            {/* 폼 영역 */}
+            <div className="max-w-4xl mx-auto mb-8">
+              {activeTab === 'upload' ? (
+                <VideoUpload onSubmit={handleVideoUpload} isLoading={isLoading} />
+              ) : (
+                <MatchHistorySearch onVideoAnalysisRequest={handleMatchHistoryAnalysis} />
+              )}
+            </div>
 
-        {/* 판결 결과 */}
-        {verdict && (
-          <VerdictDisplay verdict={verdict} />
-        )}
+            {/* 인라인 광고 */}
+            <InlineAd />
 
-                 {/* 사용법 안내 */}
-         <div className="max-w-4xl mx-auto mt-12">
-           <div className="bg-white rounded-xl shadow-lg p-6">
-             <h3 className="text-xl font-bold text-court-brown mb-4">
-               💡 롤법원 사용법
-             </h3>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div>
-                 <h4 className="font-semibold text-gray-800 mb-2">🎬 영상 판사</h4>
-                 <ul className="text-sm text-gray-600 space-y-1">
-                   <li>• 드래그 앤 드롭으로 영상 업로드</li>
-                   <li>• 실시간 미리보기 및 구간 선택</li>
-                   <li>• 판결받을 캐릭터를 지정하세요</li>
-                   <li>• AI가 영상을 직접 분석합니다</li>
-                 </ul>
-               </div>
-               <div>
-                 <h4 className="font-semibold text-gray-800 mb-2">🔍 전적 검색</h4>
-                 <ul className="text-sm text-gray-600 space-y-1">
-                   <li>• 소환사명으로 전적을 검색하세요</li>
-                   <li>• 최근 게임 기록을 확인하세요</li>
-                   <li>• 주요 구간을 자동으로 찾아드립니다</li>
-                   <li>• 원클릭으로 분석 요청이 가능합니다</li>
-                 </ul>
-               </div>
-             </div>
-           </div>
-         </div>
+            {/* 판결 결과 */}
+            {verdict && (
+              <VerdictDisplay verdict={verdict} />
+            )}
+
+            {/* 사용법 안내 */}
+            <div className="max-w-4xl mx-auto mt-12">
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-xl font-bold text-court-brown mb-4">
+                  💡 롤법원 사용법
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">🎬 직접 영상 올리기</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• 드래그 앤 드롭으로 영상 업로드</li>
+                      <li>• 실시간 미리보기 및 구간 선택</li>
+                      <li>• 분석하고 싶은 상황을 자세히 설명하세요</li>
+                      <li>• AI가 영상을 직접 분석합니다</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">🔍 전적에서 영상찾기</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• 소환사명으로 전적을 검색하세요</li>
+                      <li>• 최근 게임 기록을 확인하세요</li>
+                      <li>• 주요 구간을 자동으로 찾아드립니다</li>
+                      <li>• 원클릭으로 분석 요청이 가능합니다</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* 푸터 광고 */}
+      <FooterAd />
     </main>
   )
 }

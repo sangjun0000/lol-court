@@ -8,8 +8,8 @@ export interface VideoUploadData {
   startTime: number
   endTime: number
   targetCharacters: string[]
-  analysisType: 'teamfight' | 'gank' | 'objective' | 'laning' | 'custom'
-  customDescription?: string
+  analysisType: 'custom'
+  customDescription: string
 }
 
 interface VideoUploadProps {
@@ -23,28 +23,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [startTime, setStartTime] = useState<number>(0)
   const [endTime, setEndTime] = useState<number>(0)
   const [videoDuration, setVideoDuration] = useState<number>(0)
-  const [targetCharacters, setTargetCharacters] = useState<string[]>([])
-  const [analysisType, setAnalysisType] = useState<'teamfight' | 'gank' | 'objective' | 'laning' | 'custom'>('teamfight')
   const [customDescription, setCustomDescription] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
+  const [isSelectingRange, setIsSelectingRange] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
-
-  const champions = [
-    '리 신', '다리우스', '이즈리얼', '트런들', '야스오', '진', '카이사', '루시안', 
-    '베인', '케이틀린', '애쉬', '징크스', '트리스타나', '드레이븐', '미스 포츈',
-    '카직스', '렉사이', '엘리스', '누누', '람머스', '아무무', '피들스틱',
-    '갱플랭크', '가렌', '나서스', '말파이트', '오른', '쉔', '케넨',
-    '제라스', '오리아나', '아리', '카시오페아', '르블랑', '애니', '브랜드',
-    '쓰레쉬', '레오나', '알리스타', '블리츠크랭크', '나미', '소나', '모르가나'
-  ]
-
-  const analysisTypes = [
-    { value: 'teamfight', label: '팀파이트', description: '한타 상황에서의 판단' },
-    { value: 'gank', label: '갱킹', description: '갱킹 상황에서의 판단' },
-    { value: 'objective', label: '오브젝트', description: '드래곤/바론 상황에서의 판단' },
-    { value: 'laning', label: '라인전', description: '라인전 상황에서의 판단' },
-    { value: 'custom', label: '커스텀', description: '직접 상황 설명' }
-  ]
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -52,6 +34,12 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       setVideoFile(file)
       const url = URL.createObjectURL(file)
       setVideoUrl(url)
+      // 영상 로드 후 기본 구간 설정 (처음 30초)
+      setTimeout(() => {
+        if (videoRef.current && videoRef.current.duration > 30) {
+          setEndTime(30)
+        }
+      }, 1000)
     }
   }, [])
 
@@ -68,37 +56,64 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
 
   const handleVideoLoad = () => {
     if (videoRef.current) {
-      setVideoDuration(videoRef.current.duration)
-      setEndTime(videoRef.current.duration)
+      const duration = videoRef.current.duration
+      setVideoDuration(duration)
+      // 기본적으로 처음 30초 또는 전체 영상 중 짧은 것
+      setEndTime(Math.min(30, duration))
     }
   }
 
   const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setStartTime(videoRef.current.currentTime)
+    if (videoRef.current && isSelectingRange) {
+      setEndTime(videoRef.current.currentTime)
     }
   }
 
-  const handleCharacterToggle = (character: string) => {
-    setTargetCharacters(prev => 
-      prev.includes(character) 
-        ? prev.filter(c => c !== character)
-        : [...prev, character]
-    )
+  const handleRangeSelectionStart = () => {
+    if (videoRef.current) {
+      setStartTime(videoRef.current.currentTime)
+      setIsSelectingRange(true)
+    }
+  }
+
+  const handleRangeSelectionEnd = () => {
+    setIsSelectingRange(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (videoFile && targetCharacters.length > 0) {
+    if (videoFile && customDescription.trim()) {
+      // 사용자 설명에서 캐릭터 이름 추출
+      const characterNames = extractCharacterNames(customDescription)
+      
       onSubmit({
         videoFile,
         startTime,
         endTime,
-        targetCharacters,
-        analysisType,
-        customDescription: analysisType === 'custom' ? customDescription : undefined
+        targetCharacters: characterNames,
+        analysisType: 'custom',
+        customDescription
       })
     }
+  }
+
+  // 사용자 설명에서 캐릭터 이름 추출하는 함수
+  const extractCharacterNames = (description: string): string[] => {
+    const champions = [
+      '리 신', '다리우스', '이즈리얼', '트런들', '야스오', '진', '카이사', '루시안', 
+      '베인', '케이틀린', '애쉬', '징크스', '트리스타나', '드레이븐', '미스 포츈',
+      '카직스', '렉사이', '엘리스', '누누', '람머스', '아무무', '피들스틱',
+      '갱플랭크', '가렌', '나서스', '말파이트', '오른', '쉔', '케넨',
+      '제라스', '오리아나', '아리', '카시오페아', '르블랑', '애니', '브랜드',
+      '쓰레쉬', '레오나', '알리스타', '블리츠크랭크', '나미', '소나', '모르가나',
+      '세라핀', '소라카', '룰루', '자이라', '카르마', '잔나', '타릭'
+    ]
+    
+    const foundCharacters = champions.filter(champion => 
+      description.includes(champion)
+    )
+    
+    return foundCharacters
   }
 
   const formatTime = (seconds: number) => {
@@ -113,6 +128,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const getRangeDuration = () => {
+    return endTime - startTime
   }
 
   return (
@@ -166,6 +185,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                     setVideoFile(null)
                     setVideoUrl('')
                     setVideoDuration(0)
+                    setStartTime(0)
+                    setEndTime(0)
                   }}
                   className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
                 >
@@ -176,74 +197,82 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </div>
         </div>
 
-        {/* 영상 미리보기 */}
+        {/* 영상 미리보기 및 구간 선택 */}
         {videoUrl && (
           <div className="bg-gray-100 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">🎥 영상 미리보기</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">🎥 영상 미리보기 및 구간 선택</h4>
             <video
               ref={videoRef}
               src={videoUrl}
               controls
-              className="w-full rounded-lg"
+              className="w-full rounded-lg mb-4"
               onLoadedMetadata={handleVideoLoad}
               onTimeUpdate={handleTimeUpdate}
             />
-            <p className="text-sm text-gray-600 mt-2">
-              영상을 재생하여 분석하고 싶은 구간을 확인하세요
-            </p>
-          </div>
-        )}
+            
+            {/* 구간 선택 안내 */}
+            <div className="bg-blue-50 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-700 font-medium mb-2">
+                🎯 분석 구간 선택 방법:
+              </p>
+              <ul className="text-sm text-blue-600 space-y-1">
+                <li>• 영상을 재생하여 분석하고 싶은 구간을 찾으세요</li>
+                <li>• 시작 지점에서 "구간 시작" 버튼을 클릭하세요</li>
+                <li>• 종료 지점에서 "구간 종료" 버튼을 클릭하세요</li>
+                <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
+              </ul>
+            </div>
 
-        {/* 분석 유형 선택 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            🎯 분석하고 싶은 상황 *
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {analysisTypes.map(type => (
-              <label key={type.value} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="radio"
-                  name="analysisType"
-                  value={type.value}
-                  checked={analysisType === type.value}
-                  onChange={(e) => setAnalysisType(e.target.value as any)}
-                  className="mr-3"
-                />
+            {/* 구간 선택 버튼 */}
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                onClick={handleRangeSelectionStart}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                🎬 구간 시작
+              </button>
+              <button
+                type="button"
+                onClick={handleRangeSelectionEnd}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                ⏹️ 구간 종료
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStartTime(0)
+                  setEndTime(Math.min(30, videoDuration))
+                }}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                🔄 처음 30초
+              </button>
+            </div>
+
+            {/* 구간 정보 표시 */}
+            <div className="bg-white rounded-lg p-3 border">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="font-medium text-gray-800">{type.label}</div>
-                  <div className="text-sm text-gray-600">{type.description}</div>
+                  <p className="text-sm text-gray-600">시작 시간</p>
+                  <p className="text-lg font-bold text-green-600">{formatTime(startTime)}</p>
                 </div>
-              </label>
-            ))}
-          </div>
-        </div>
+                <div>
+                  <p className="text-sm text-gray-600">종료 시간</p>
+                  <p className="text-lg font-bold text-red-600">{formatTime(endTime)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">분석 구간</p>
+                  <p className="text-lg font-bold text-blue-600">{formatTime(getRangeDuration())}</p>
+                </div>
+              </div>
+            </div>
 
-        {/* 커스텀 설명 */}
-        {analysisType === 'custom' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              📝 상황 설명
-            </label>
-            <textarea
-              value={customDescription}
-              onChange={(e) => setCustomDescription(e.target.value)}
-              className="input-field"
-              rows={3}
-              placeholder="분석하고 싶은 구체적인 상황을 설명해주세요..."
-            />
-          </div>
-        )}
-
-        {/* 시간 구간 선택 */}
-        {videoDuration > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ⏰ 분석 구간 선택 *
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 슬라이더로 세밀 조정 */}
+            <div className="mt-4 space-y-3">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">시작 시간</label>
+                <label className="block text-sm text-gray-600 mb-1">시작 시간 조정</label>
                 <input
                   type="range"
                   min="0"
@@ -255,7 +284,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 <span className="text-sm text-gray-600">{formatTime(startTime)}</span>
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">종료 시간</label>
+                <label className="block text-sm text-gray-600 mb-1">종료 시간 조정</label>
                 <input
                   type="range"
                   min="0"
@@ -267,83 +296,39 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 <span className="text-sm text-gray-600">{formatTime(endTime)}</span>
               </div>
             </div>
-            <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-700">
-                분석 구간: {formatTime(startTime)} ~ {formatTime(endTime)} 
-                (총 {formatTime(endTime - startTime)})
-              </p>
-            </div>
+
+            {/* 구간 경고 */}
+            {getRangeDuration() > 60 && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-700">
+                  ⚠️ 분석 구간이 1분을 초과합니다. 비용 절약을 위해 더 짧은 구간을 선택하는 것을 권장합니다.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 판결받을 캐릭터 선택 */}
+        {/* 분석하고 싶은 상황 설명 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            👥 판결받을 캐릭터 선택 *
+            📝 분석하고 싶은 상황을 자세히 설명해주세요 *
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-60 overflow-y-auto border rounded-lg p-3">
-            {champions.map(character => (
-              <label key={character} className="flex items-center p-2 rounded cursor-pointer hover:bg-gray-100">
-                <input
-                  type="checkbox"
-                  checked={targetCharacters.includes(character)}
-                  onChange={() => handleCharacterToggle(character)}
-                  className="mr-2"
-                />
-                <span className="text-sm">{character}</span>
-              </label>
-            ))}
-          </div>
-          {targetCharacters.length > 0 && (
-            <div className="mt-2 p-2 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-700">
-                선택된 캐릭터: {targetCharacters.join(', ')}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* 빠른 선택 버튼들 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            ⚡ 빠른 선택
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setTargetCharacters(['리 신', '다리우스', '이즈리얼', '트런들', '야스오'])}
-              className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200"
-            >
-              아군 전체
-            </button>
-            <button
-              type="button"
-              onClick={() => setTargetCharacters(['리 신'])}
-              className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200"
-            >
-              정글러만
-            </button>
-            <button
-              type="button"
-              onClick={() => setTargetCharacters(['다리우스'])}
-              className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200"
-            >
-              탑 라이너만
-            </button>
-            <button
-              type="button"
-              onClick={() => setTargetCharacters([])}
-              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200"
-            >
-              선택 해제
-            </button>
-          </div>
+          <textarea
+            value={customDescription}
+            onChange={(e) => setCustomDescription(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lol-gold focus:border-transparent resize-none"
+            rows={4}
+            placeholder="예시: 이즈리얼과 세라핀 둘 중에 누구 잘못이 더 큰지 분석해주세요. 이즈리얼이 세라핀의 궁극기를 피하지 못해서 팀파이트에서 패배했습니다."
+          />
+          <p className="text-sm text-gray-600 mt-2">
+            💡 분석하고 싶은 캐릭터 이름을 포함해서 설명해주세요. (예: 이즈리얼, 세라핀, 리신 등)
+          </p>
         </div>
 
         {/* 제출 버튼 */}
         <button
           type="submit"
-          disabled={isLoading || !videoFile || targetCharacters.length === 0}
+          disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0}
           className="court-button w-full text-lg py-4"
         >
           {isLoading ? '🔍 영상 분석 중...' : '⚖️ 영상 판결 받기'}
@@ -354,10 +339,9 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         <p className="text-sm text-blue-700">
           💡 <strong>영상 업로드 사용법:</strong><br/>
           1. 롤 게임 영상을 드래그하거나 클릭하여 업로드하세요<br/>
-          2. 분석하고 싶은 상황 유형을 선택하세요<br/>
-          3. 영상에서 분석 구간을 설정하세요<br/>
-          4. 판결받을 캐릭터들을 선택하세요<br/>
-          5. AI가 영상을 분석하여 객관적인 판결을 내립니다
+          2. 영상에서 분석하고 싶은 구간을 선택하세요 (비용 절약을 위해 짧게)<br/>
+          3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
+          4. AI가 선택한 구간을 분석하여 객관적인 판결을 내립니다
         </p>
       </div>
     </div>

@@ -21,7 +21,7 @@ export interface MatchData {
 }
 
 interface MatchHistorySearchProps {
-  onVideoAnalysisRequest: (matchData: MatchData, highlight: { startTime: number, endTime: number, description: string }) => void
+  onVideoAnalysisRequest: (matchData: MatchData, highlight: { startTime: number, endTime: number, description: string }, customDescription: string) => void
 }
 
 export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHistorySearchProps) {
@@ -30,6 +30,11 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
   const [isLoading, setIsLoading] = useState(false)
   const [matches, setMatches] = useState<MatchData[]>([])
   const [error, setError] = useState('')
+  const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null)
+  const [selectedHighlight, setSelectedHighlight] = useState<{ startTime: number, endTime: number, description: string } | null>(null)
+  const [customDescription, setCustomDescription] = useState('')
+  const [customStartTime, setCustomStartTime] = useState(0)
+  const [customEndTime, setCustomEndTime] = useState(30)
 
   const regions = [
     { value: 'kr', label: '한국', flag: '🇰🇷' },
@@ -86,7 +91,21 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
   }
 
   const handleVideoAnalysis = (match: MatchData, highlight: { startTime: number, endTime: number, description: string }) => {
-    onVideoAnalysisRequest(match, highlight)
+    setSelectedMatch(match)
+    setSelectedHighlight(highlight)
+    setCustomStartTime(highlight.startTime)
+    setCustomEndTime(highlight.endTime)
+    setCustomDescription(`${match.champion}의 ${highlight.description} 구간 분석`)
+  }
+
+  const handleCustomAnalysis = () => {
+    if (selectedMatch && customDescription.trim()) {
+      onVideoAnalysisRequest(selectedMatch, {
+        startTime: customStartTime,
+        endTime: customEndTime,
+        description: '커스텀 구간'
+      }, customDescription)
+    }
   }
 
   const formatDuration = (seconds: number) => {
@@ -106,10 +125,14 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
     })
   }
 
+  const getRangeDuration = () => {
+    return customEndTime - customStartTime
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-2xl p-6 border-2 border-lol-gold">
       <h3 className="text-2xl font-bold text-court-brown mb-6">
-        🔍 전적 검색
+        🔍 전적에서 영상찾기
       </h3>
 
       {/* 검색 폼 */}
@@ -201,12 +224,12 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
                     <button
                       onClick={() => handleVideoAnalysis(match, {
                         startTime: 0,
-                        endTime: match.gameDuration,
-                        description: '전체 게임'
+                        endTime: Math.min(60, match.gameDuration), // 최대 1분으로 제한
+                        description: '게임 시작 구간'
                       })}
                       className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200"
                     >
-                      🎬 전체 분석
+                      🎬 구간 선택
                     </button>
                   </div>
                 </div>
@@ -228,7 +251,7 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
                             onClick={() => handleVideoAnalysis(match, highlight)}
                             className="px-2 py-1 bg-lol-gold text-white rounded text-xs hover:bg-yellow-600"
                           >
-                            분석
+                            구간 선택
                           </button>
                         </div>
                       ))}
@@ -241,14 +264,109 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
         </div>
       )}
 
+      {/* 구간 선택 및 분석 설정 */}
+      {selectedMatch && selectedHighlight && (
+        <div className="mt-6 border-t pt-6">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">
+            🎯 분석 구간 설정
+          </h4>
+          
+          <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+            {/* 선택된 게임 정보 */}
+            <div className="flex items-center space-x-3">
+              <span className="font-medium text-gray-800">{selectedMatch.champion}</span>
+              <span className="text-sm text-gray-600">{selectedMatch.gameMode}</span>
+              <span className={`text-sm font-medium ${selectedMatch.win ? 'text-green-600' : 'text-red-600'}`}>
+                {selectedMatch.win ? '승리' : '패배'}
+              </span>
+            </div>
+
+            {/* 구간 조정 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ⏰ 분석 구간 조정
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">시작 시간</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max={selectedMatch.gameDuration}
+                    value={customStartTime}
+                    onChange={(e) => setCustomStartTime(parseFloat(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="text-sm text-gray-600">{formatDuration(customStartTime)}</span>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">종료 시간</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max={selectedMatch.gameDuration}
+                    value={customEndTime}
+                    onChange={(e) => setCustomEndTime(parseFloat(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="text-sm text-gray-600">{formatDuration(customEndTime)}</span>
+                </div>
+              </div>
+              <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  분석 구간: {formatDuration(customStartTime)} ~ {formatDuration(customEndTime)} 
+                  (총 {formatDuration(getRangeDuration())})
+                </p>
+              </div>
+            </div>
+
+            {/* 분석하고 싶은 상황 설명 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📝 분석하고 싶은 상황을 자세히 설명해주세요 *
+              </label>
+              <textarea
+                value={customDescription}
+                onChange={(e) => setCustomDescription(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lol-gold focus:border-transparent resize-none"
+                rows={3}
+                placeholder="예시: 이즈리얼과 세라핀 둘 중에 누구 잘못이 더 큰지 분석해주세요. 이즈리얼이 세라핀의 궁극기를 피하지 못해서 팀파이트에서 패배했습니다."
+              />
+              <p className="text-sm text-gray-600 mt-2">
+                💡 분석하고 싶은 캐릭터 이름을 포함해서 설명해주세요.
+              </p>
+            </div>
+
+            {/* 구간 경고 */}
+            {getRangeDuration() > 60 && (
+              <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-700">
+                  ⚠️ 분석 구간이 1분을 초과합니다. 비용 절약을 위해 더 짧은 구간을 선택하는 것을 권장합니다.
+                </p>
+              </div>
+            )}
+
+            {/* 분석 시작 버튼 */}
+            <button
+              onClick={handleCustomAnalysis}
+              disabled={!customDescription.trim() || getRangeDuration() <= 0}
+              className="court-button w-full text-lg py-4"
+            >
+              ⚖️ 영상 판결 받기
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 사용법 안내 */}
       <div className="mt-6 p-3 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-700">
-          💡 <strong>전적 검색 사용법:</strong><br/>
+          💡 <strong>전적에서 영상찾기 사용법:</strong><br/>
           1. 서버와 소환사명을 입력하세요<br/>
           2. 최근 게임 기록을 확인하세요<br/>
-          3. 분석하고 싶은 게임의 "전체 분석" 또는 "주요 구간"을 클릭하세요<br/>
-          4. 자동으로 영상 분석 요청이 생성됩니다
+          3. 분석하고 싶은 게임의 "구간 선택"을 클릭하세요<br/>
+          4. 분석 구간을 조정하고 상황을 설명하세요<br/>
+          5. AI가 선택한 구간을 분석하여 객관적인 판결을 내립니다
         </p>
       </div>
     </div>
