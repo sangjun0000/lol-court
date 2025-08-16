@@ -466,7 +466,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         {videoUrl && !videoFile?.name.endsWith('.rofl') && (
           <div className="bg-gray-100 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-2">
-              {videoFile?.name.endsWith('.rofl') ? '🎮 ROFL 파일 구간 선택' : '🎥 영상 미리보기 및 구간 선택'}
+              🎥 영상 미리보기 및 구간 선택
             </h4>
             
                         {/* 일반 영상 미리보기 */}
@@ -494,19 +494,9 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 🎯 분석 구간 선택 방법:
               </p>
               <ul className="text-sm text-blue-600 space-y-1">
-                {videoFile?.name.endsWith('.rofl') ? (
-                  <>
-                    <li>• 게임 시간을 기준으로 분석하고 싶은 구간을 선택하세요</li>
-                    <li>• 아래 슬라이더로 시작과 종료 지점을 설정하세요</li>
-                    <li>• 설정한 구간이 실시간으로 표시됩니다</li>
-                  </>
-                ) : (
-                  <>
-                    <li>• 영상이 자동으로 재생됩니다 (음소거 상태)</li>
-                    <li>• 아래 슬라이더로 시작과 종료 지점을 설정하세요</li>
-                    <li>• 설정한 구간이 실시간으로 표시됩니다</li>
-                  </>
-                )}
+                <li>• 영상이 자동으로 재생됩니다 (음소거 상태)</li>
+                <li>• 아래 슬라이더로 시작과 종료 지점을 설정하세요</li>
+                <li>• 설정한 구간이 실시간으로 표시됩니다</li>
               </ul>
             </div>
 
