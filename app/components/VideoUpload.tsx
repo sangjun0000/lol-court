@@ -35,8 +35,12 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       
              // rofl 파일인 경우 특별 처리
        if (file.name.endsWith('.rofl')) {
-         // ROFL 파일은 바로 분석 가능
-         setVideoUrl('')
+         // ROFL 파일도 구간 선택 가능하도록 처리
+         setVideoUrl('rofl-file')
+         // ROFL 파일의 경우 기본 게임 시간 설정 (20분 게임 기준)
+         setVideoDuration(1200) // 20분 = 1200초
+         setStartTime(0)
+         setEndTime(60) // 기본적으로 처음 1분 분석
          return
        }
       
@@ -218,13 +222,12 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                  <strong>ROFL 파일</strong>이 성공적으로 업로드되었습니다!
                </p>
                <div className="bg-white rounded-lg p-3">
-                 <p className="text-sm font-medium text-gray-700 mb-2">✨ 자동 분석 기능:</p>
-                 <ul className="text-sm text-gray-600 space-y-1">
-                   <li>• ROFL 파일에서 게임 이벤트를 자동으로 추출합니다</li>
-                   <li>• 구간 선택 없이 전체 게임을 분석합니다</li>
-                   <li>• AI가 게임 데이터를 기반으로 판결을 내립니다</li>
-                   <li>• 영상 녹화 없이 바로 분석 가능합니다</li>
-                 </ul>
+                 <p className="text-sm font-medium text-gray-700 mb-2">📋 다음 단계:</p>
+                 <ol className="text-sm text-gray-600 space-y-1">
+                   <li>1. 아래에서 분석하고 싶은 게임 구간을 선택하세요</li>
+                   <li>2. ROFL 파일에서 해당 구간의 게임 데이터를 추출합니다</li>
+                   <li>3. AI가 선택한 구간을 분석하여 판결을 내립니다</li>
+                 </ol>
                </div>
                <div className="bg-blue-50 rounded-lg p-3">
                  <p className="text-sm font-medium text-blue-700 mb-1">💡 장점:</p>
@@ -236,59 +239,89 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
            </div>
          )}
 
-        {/* 영상 미리보기 및 구간 선택 */}
-        {videoUrl && (
-          <div className="bg-gray-100 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">🎥 영상 미리보기 및 구간 선택</h4>
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              controls
-              className="w-full rounded-lg mb-4"
-              onLoadedMetadata={handleVideoLoad}
-              onTimeUpdate={handleTimeUpdate}
-            />
+                          {/* 영상/ROFL 미리보기 및 구간 선택 */}
+         {videoUrl && (
+           <div className="bg-gray-100 rounded-lg p-4">
+             <h4 className="font-semibold text-gray-800 mb-2">
+               {videoFile?.name.endsWith('.rofl') ? '🎮 ROFL 파일 구간 선택' : '🎥 영상 미리보기 및 구간 선택'}
+             </h4>
+             
+             {videoFile?.name.endsWith('.rofl') ? (
+               // ROFL 파일 구간 선택 UI
+               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                 <div className="text-center">
+                   <div className="text-4xl mb-2">🎮</div>
+                   <p className="text-lg font-medium text-yellow-800 mb-2">
+                     ROFL 파일: {videoFile.name}
+                   </p>
+                   <p className="text-sm text-yellow-700">
+                     게임 시간을 기준으로 분석 구간을 선택하세요
+                   </p>
+                 </div>
+               </div>
+             ) : (
+               // 일반 영상 미리보기
+               <video
+                 ref={videoRef}
+                 src={videoUrl}
+                 controls
+                 className="w-full rounded-lg mb-4"
+                 onLoadedMetadata={handleVideoLoad}
+                 onTimeUpdate={handleTimeUpdate}
+               />
+             )}
             
-            {/* 구간 선택 안내 */}
-            <div className="bg-blue-50 rounded-lg p-3 mb-4">
-              <p className="text-sm text-blue-700 font-medium mb-2">
-                🎯 분석 구간 선택 방법:
-              </p>
-              <ul className="text-sm text-blue-600 space-y-1">
-                <li>• 영상을 재생하여 분석하고 싶은 구간을 찾으세요</li>
-                <li>• 시작 지점에서 "구간 시작" 버튼을 클릭하세요</li>
-                <li>• 종료 지점에서 "구간 종료" 버튼을 클릭하세요</li>
-                <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
-              </ul>
-            </div>
+                         {/* 구간 선택 안내 */}
+             <div className="bg-blue-50 rounded-lg p-3 mb-4">
+               <p className="text-sm text-blue-700 font-medium mb-2">
+                 🎯 분석 구간 선택 방법:
+               </p>
+               <ul className="text-sm text-blue-600 space-y-1">
+                 {videoFile?.name.endsWith('.rofl') ? (
+                   <>
+                     <li>• 게임 시간을 기준으로 분석하고 싶은 구간을 선택하세요</li>
+                     <li>• 시작 시간에서 "구간 시작" 버튼을 클릭하세요</li>
+                     <li>• 종료 시간에서 "구간 종료" 버튼을 클릭하세요</li>
+                     <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
+                   </>
+                 ) : (
+                   <>
+                     <li>• 영상을 재생하여 분석하고 싶은 구간을 찾으세요</li>
+                     <li>• 시작 지점에서 "구간 시작" 버튼을 클릭하세요</li>
+                     <li>• 종료 지점에서 "구간 종료" 버튼을 클릭하세요</li>
+                     <li>• 또는 아래 슬라이더로 직접 조정할 수 있습니다</li>
+                   </>
+                 )}
+               </ul>
+             </div>
 
-            {/* 구간 선택 버튼 */}
-            <div className="flex gap-2 mb-4">
-              <button
-                type="button"
-                onClick={handleRangeSelectionStart}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                🎬 구간 시작
-              </button>
-              <button
-                type="button"
-                onClick={handleRangeSelectionEnd}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                ⏹️ 구간 종료
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setStartTime(0)
-                  setEndTime(Math.min(30, videoDuration))
-                }}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                🔄 처음 30초
-              </button>
-            </div>
+                         {/* 구간 선택 버튼 */}
+             <div className="flex gap-2 mb-4">
+               <button
+                 type="button"
+                 onClick={handleRangeSelectionStart}
+                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+               >
+                 🎬 구간 시작
+               </button>
+               <button
+                 type="button"
+                 onClick={handleRangeSelectionEnd}
+                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+               >
+                 ⏹️ 구간 종료
+               </button>
+               <button
+                 type="button"
+                 onClick={() => {
+                   setStartTime(0)
+                   setEndTime(Math.min(60, videoDuration))
+                 }}
+                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+               >
+                 {videoFile?.name.endsWith('.rofl') ? '🔄 처음 1분' : '🔄 처음 30초'}
+               </button>
+             </div>
 
             {/* 구간 정보 표시 */}
             <div className="bg-white rounded-lg p-3 border">
@@ -367,10 +400,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                  {/* 제출 버튼 */}
          <button
            type="submit"
-           disabled={isLoading || !videoFile || !customDescription.trim() || (!videoFile.name.endsWith('.rofl') && getRangeDuration() <= 0)}
+           disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0}
            className="court-button w-full text-lg py-4"
          >
-           {isLoading ? '🔍 분석 중...' : videoFile?.name.endsWith('.rofl') ? '⚖️ ROFL 파일 판결 받기' : '⚖️ 영상 판결 받기'}
+           {isLoading ? '🔍 분석 중...' : '⚖️ 판결 받기'}
          </button>
       </form>
 
