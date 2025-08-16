@@ -27,88 +27,16 @@ export async function GET(request: NextRequest) {
 }
 
 async function generateRoflVideo(): Promise<Blob> {
-  // 초고속 영상 생성 (3초로 단축)
-  const canvas = new OffscreenCanvas(1280, 720)
-  const ctx = canvas.getContext('2d')!
+  // 서버 사이드에서는 간단한 더미 영상 생성
+  // OffscreenCanvas는 서버에서 사용할 수 없으므로 더미 데이터만 반환
   
-  // MediaRecorder를 사용하여 영상 녹화
-  const stream = canvas.captureStream(30) // 30fps
-  const mediaRecorder = new MediaRecorder(stream, {
-    mimeType: 'video/webm;codecs=vp9'
-  })
+  // 간단한 더미 영상 Blob 생성 (1KB)
+  const dummyVideoData = new Uint8Array(1024)
   
-  const chunks: Blob[] = []
+  // 더미 데이터에 간단한 패턴 생성
+  for (let i = 0; i < dummyVideoData.length; i++) {
+    dummyVideoData[i] = Math.floor(Math.random() * 256)
+  }
   
-  return new Promise((resolve) => {
-    mediaRecorder.ondataavailable = (e) => chunks.push(e.data)
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' })
-      resolve(blob)
-    }
-    
-    mediaRecorder.start()
-    
-    // 초고속 게임 맵 애니메이션 생성 (3초로 단축)
-    let frame = 0
-    const totalFrames = 90 // 3초 (30fps)
-    
-    const animate = () => {
-      // 맵 배경 그리기
-      ctx.fillStyle = '#2d5a27' // 소환사의 협곡 녹색
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      
-      // 미니맵 그리기
-      ctx.fillStyle = '#1a3d1a'
-      ctx.fillRect(10, 10, 200, 200)
-      
-      // 챔피언들 그리기 (더미 데이터)
-      const champions = [
-        { name: '이즈리얼', x: 200 + Math.sin(frame * 0.4) * 100, y: 200 + Math.cos(frame * 0.4) * 100, color: '#ff6b6b' },
-        { name: '세라핀', x: 400 + Math.sin(frame * 0.6) * 80, y: 300 + Math.cos(frame * 0.6) * 80, color: '#4ecdc4' },
-        { name: '리신', x: 600 + Math.sin(frame * 0.8) * 120, y: 400 + Math.cos(frame * 0.8) * 120, color: '#45b7d1' }
-      ]
-      
-      champions.forEach(champ => {
-        // 챔피언 원 그리기
-        ctx.fillStyle = champ.color
-        ctx.beginPath()
-        ctx.arc(champ.x, champ.y, 15, 0, 2 * Math.PI)
-        ctx.fill()
-        
-        // 챔피언 이름
-        ctx.fillStyle = 'white'
-        ctx.font = 'bold 14px Arial'
-        ctx.textAlign = 'center'
-        ctx.fillText(champ.name, champ.x, champ.y - 25)
-        
-        // 체력바
-        ctx.fillStyle = '#2ecc71'
-        ctx.fillRect(champ.x - 20, champ.y + 20, 40, 5)
-      })
-      
-      // 시간 표시
-      ctx.fillStyle = 'white'
-      ctx.font = 'bold 24px Arial'
-      ctx.textAlign = 'left'
-      const time = Math.floor(frame / 30)
-      ctx.fillText(`${Math.floor(time / 60)}:${(time % 60).toString().padStart(2, '0')}`, 20, 50)
-      
-      // 게임 이벤트 표시 (더 자주)
-      if (frame % 15 === 0) { // 0.5초마다
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-        ctx.font = '16px Arial'
-        ctx.fillText('⚔️ 팀파이트!', canvas.width - 200, 50)
-      }
-      
-      frame++
-      
-      if (frame < totalFrames) {
-        requestAnimationFrame(animate)
-      } else {
-        mediaRecorder.stop()
-      }
-    }
-    
-    animate()
-  })
+  return new Blob([dummyVideoData], { type: 'video/webm' })
 }
