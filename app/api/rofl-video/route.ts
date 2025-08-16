@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 }
 
 async function generateRoflVideo(): Promise<Blob> {
-  // 빠른 영상 생성 (1초 이내)
+  // 초고속 영상 생성 (3초로 단축)
   const canvas = new OffscreenCanvas(1280, 720)
   const ctx = canvas.getContext('2d')!
   
@@ -48,9 +48,9 @@ async function generateRoflVideo(): Promise<Blob> {
     
     mediaRecorder.start()
     
-    // 빠른 게임 맵 애니메이션 생성 (5초로 단축)
+    // 초고속 게임 맵 애니메이션 생성 (3초로 단축)
     let frame = 0
-    const totalFrames = 150 // 5초 (30fps)
+    const totalFrames = 90 // 3초 (30fps)
     
     const animate = () => {
       // 맵 배경 그리기
@@ -63,9 +63,9 @@ async function generateRoflVideo(): Promise<Blob> {
       
       // 챔피언들 그리기 (더미 데이터)
       const champions = [
-        { name: '이즈리얼', x: 200 + Math.sin(frame * 0.2) * 100, y: 200 + Math.cos(frame * 0.2) * 100, color: '#ff6b6b' },
-        { name: '세라핀', x: 400 + Math.sin(frame * 0.3) * 80, y: 300 + Math.cos(frame * 0.3) * 80, color: '#4ecdc4' },
-        { name: '리신', x: 600 + Math.sin(frame * 0.4) * 120, y: 400 + Math.cos(frame * 0.4) * 120, color: '#45b7d1' }
+        { name: '이즈리얼', x: 200 + Math.sin(frame * 0.4) * 100, y: 200 + Math.cos(frame * 0.4) * 100, color: '#ff6b6b' },
+        { name: '세라핀', x: 400 + Math.sin(frame * 0.6) * 80, y: 300 + Math.cos(frame * 0.6) * 80, color: '#4ecdc4' },
+        { name: '리신', x: 600 + Math.sin(frame * 0.8) * 120, y: 400 + Math.cos(frame * 0.8) * 120, color: '#45b7d1' }
       ]
       
       champions.forEach(champ => {
@@ -94,7 +94,7 @@ async function generateRoflVideo(): Promise<Blob> {
       ctx.fillText(`${Math.floor(time / 60)}:${(time % 60).toString().padStart(2, '0')}`, 20, 50)
       
       // 게임 이벤트 표시 (더 자주)
-      if (frame % 30 === 0) { // 1초마다
+      if (frame % 15 === 0) { // 0.5초마다
         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
         ctx.font = '16px Arial'
         ctx.fillText('⚔️ 팀파이트!', canvas.width - 200, 50)

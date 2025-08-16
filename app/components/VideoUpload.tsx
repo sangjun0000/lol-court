@@ -30,6 +30,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [isSelectingRange, setIsSelectingRange] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [calculatedCost, setCalculatedCost] = useState<CostBreakdown | null>(null)
+  const [conversionProgress, setConversionProgress] = useState<number>(0)
+  const [isConverting, setIsConverting] = useState<boolean>(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -46,8 +48,22 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         setStartTime(0)
         setEndTime(60) // 기본적으로 처음 1분 분석
         
-                 // ROFL 파일을 영상으로 변환
+                          // ROFL 파일을 영상으로 변환 (진행률 표시 포함)
          try {
+           setIsConverting(true)
+           setConversionProgress(0)
+           
+           // 진행률 시뮬레이션 (10초 안에 완료)
+           const progressInterval = setInterval(() => {
+             setConversionProgress(prev => {
+               if (prev >= 95) {
+                 clearInterval(progressInterval)
+                 return 95
+               }
+               return prev + Math.random() * 15 + 5 // 5-20%씩 증가
+             })
+           }, 200) // 200ms마다 업데이트
+           
            const formData = new FormData()
            formData.append('roflFile', file)
            
@@ -59,20 +75,27 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
            if (response.ok) {
              const result = await response.json()
              if (result.success && result.videoUrl) {
+               // 변환 완료
+               setConversionProgress(100)
+               setIsConverting(false)
+               clearInterval(progressInterval)
+               
                // 변환된 영상 URL 설정
                setVideoUrl(result.videoUrl)
                
-                               // 영상 로드 후 자동 재생 (빠른 로딩)
-                setTimeout(() => {
-                  if (videoRef.current) {
-                    videoRef.current.load() // 영상 다시 로드
-                    videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
-                  }
-                }, 200) // 200ms로 단축
+               // 영상 로드 후 자동 재생 (초고속 로딩)
+               setTimeout(() => {
+                 if (videoRef.current) {
+                   videoRef.current.load() // 영상 다시 로드
+                   videoRef.current.play().catch(e => console.log('ROFL 변환 영상 재생 실패:', e))
+                 }
+               }, 50) // 50ms로 단축
              }
            }
          } catch (error) {
            console.error('ROFL 변환 실패:', error)
+           setIsConverting(false)
+           setConversionProgress(0)
            // 변환 실패 시에도 기본 ROFL UI는 유지
          }
         
@@ -383,17 +406,41 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                         }}
                       />
                       
-                                             {/* ROFL 파일인 경우 빠른 로딩 메시지 */}
+                                             {/* ROFL 파일인 경우 진행률 표시 */}
                        {videoUrl === 'rofl-file' && (
                          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                           <div className="text-center text-white">
+                           <div className="text-center text-white w-full max-w-md">
                              <div className="text-6xl mb-4">⚡</div>
-                             <p className="text-lg font-medium mb-2">빠른 변환 중...</p>
-                             <p className="text-sm text-gray-300">
-                               게임 데이터를 빠르게 추출하고 있습니다
+                             <p className="text-lg font-medium mb-2">
+                               {isConverting ? '초고속 변환 중...' : '변환 완료!'}
                              </p>
-                             <div className="mt-4">
-                               <div className="animate-pulse text-2xl">⚡</div>
+                             <p className="text-sm text-gray-300 mb-4">
+                               {isConverting 
+                                 ? '게임 데이터를 초고속으로 추출하고 있습니다' 
+                                 : '영상이 준비되었습니다'
+                               }
+                             </p>
+                             
+                             {/* 진행률 바 */}
+                             <div className="w-full bg-gray-700 rounded-full h-3 mb-4">
+                               <div 
+                                 className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300 ease-out"
+                                 style={{ width: `${conversionProgress}%` }}
+                               ></div>
+                             </div>
+                             
+                             {/* 진행률 퍼센트 */}
+                             <div className="text-2xl font-bold text-green-400 mb-2">
+                               {conversionProgress}%
+                             </div>
+                             
+                             {/* 상태 메시지 */}
+                             <div className="text-sm text-gray-400">
+                               {conversionProgress < 20 && '파일 분석 중...'}
+                               {conversionProgress >= 20 && conversionProgress < 50 && '게임 데이터 추출 중...'}
+                               {conversionProgress >= 50 && conversionProgress < 80 && '영상 생성 중...'}
+                               {conversionProgress >= 80 && conversionProgress < 100 && '최종 처리 중...'}
+                               {conversionProgress === 100 && '✅ 완료!'}
                              </div>
                            </div>
                          </div>

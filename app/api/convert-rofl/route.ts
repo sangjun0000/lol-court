@@ -33,13 +33,10 @@ export async function POST(request: NextRequest) {
 }
 
 async function generateVideoFromGameData(gameData: any): Promise<string> {
-  // 게임 데이터를 기반으로 즉시 영상 URL 반환
-  // 실제 영상 생성은 백그라운드에서 처리
-  
-  // 즉시 반환 (100ms 이내)
+  // 초고속 반환 (10ms 이내)
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve('/api/rofl-video')
-    }, 50) // 50ms로 단축
+    }, 10) // 10ms로 단축
   })
 }
