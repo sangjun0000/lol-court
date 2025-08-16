@@ -53,13 +53,15 @@ export default function AdBanner({ adSlot, adFormat = 'auto', className = '', st
           border: '1px dashed #dee2e6',
           borderRadius: '8px',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           color: '#6c757d',
           fontSize: '12px'
         }}
       >
-        광고 영역
+        <div>광고 영역</div>
+        <div className="text-xs text-red-500 font-bold">버전: 1</div>
       </div>
     )
   }
@@ -90,6 +92,7 @@ export default function AdBanner({ adSlot, adFormat = 'auto', className = '', st
         color: '#6c757d'
       }}>
         <p className="text-sm">광고 로드 중...</p>
+        <p className="text-xs text-red-500 font-bold">버전: 1</p>
       </div>
     </div>
   )
