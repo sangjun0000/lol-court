@@ -5,104 +5,84 @@ import { LoLReinforcementLearning } from '@/app/lib/reinforcementLearning'
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const videoFile = formData.get('video') as File
-    const analysisType = formData.get('analysisType') as string
-    const targetCharacters = JSON.parse(formData.get('targetCharacters') as string)
+    const videoFile = formData.get('videoFile') as File
     const startTime = parseFloat(formData.get('startTime') as string)
     const endTime = parseFloat(formData.get('endTime') as string)
     const customDescription = formData.get('customDescription') as string
+    const targetCharacters = JSON.parse(formData.get('targetCharacters') as string)
 
     if (!videoFile) {
-      return NextResponse.json(
-        { error: '영상 파일이 필요합니다.' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '영상 파일이 필요합니다.' }, { status: 400 })
     }
 
-    // 파일 크기 제한 (100MB)
-    if (videoFile.size > 100 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: '영상 파일 크기는 100MB를 초과할 수 없습니다.' },
-        { status: 400 }
-      )
+    // ROFL 파일 처리
+    if (videoFile.name.endsWith('.rofl')) {
+      return await handleRoflFile(videoFile, customDescription, targetCharacters)
     }
 
-    // AI 판사 초기화
-    const aiJudge = process.env.OPENAI_API_KEY 
-      ? new LolAIJudge(process.env.OPENAI_API_KEY)
-      : null
-
-    if (!aiJudge) {
-      return NextResponse.json(
-        { error: 'OpenAI API 키가 설정되지 않았습니다.' },
-        { status: 500 }
-      )
-    }
-
-    // 영상에서 프레임 추출
-    const frames = await extractFramesFromVideo(videoFile, startTime, endTime)
-    
-    // 강화학습 시스템 초기화
-    const rlSystem = new LoLReinforcementLearning()
-
-    // 분석 유형에 따른 상황 설명 생성
-    const situationDescription = generateSituationDescription(
-      analysisType,
-      targetCharacters,
-      customDescription
-    )
-
-    // 게임 상태 추출 (영상에서 추출하거나 기본값 사용)
-    const gameState = {
-      gameTime: startTime,
-      playerLevel: 10,
-      teamGold: 15000,
-      enemyGold: 14000,
-      objectives: [],
-      teamFights: 0,
-      vision: 0.5,
-      pressure: 0.5
-    }
-
-    // 강화학습 분석
-    const rlAnalysis = rlSystem.generateAIVerdict(
-      situationDescription,
-      'unknown_action', // 영상에서 추출 필요
-      gameState
-    )
-
-    // AI 영상 분석
-    const aiVerdict = await aiJudge.analyzeVideo(frames)
-
-    // 결과 통합
-    const finalVerdict = {
-      ...aiVerdict,
-      reinforcementLearning: {
-        optimalAction: rlAnalysis.optimalAction,
-        expectedReward: rlAnalysis.expectedReward,
-        playerReward: rlAnalysis.playerReward,
-        fault: rlAnalysis.fault
-      },
-      videoAnalysis: {
-        analysisType,
-        targetCharacters,
-        timeRange: {
-          start: startTime,
-          end: endTime,
-          duration: endTime - startTime
-        },
-        framesAnalyzed: frames.length
-      }
-    }
-
-    return NextResponse.json(finalVerdict)
-
+    // 일반 영상 파일 처리
+    return await handleVideoFile(videoFile, startTime, endTime, customDescription, targetCharacters)
   } catch (error) {
     console.error('영상 분석 오류:', error)
-    return NextResponse.json(
-      { error: '영상 분석 중 오류가 발생했습니다.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: '영상 분석 중 오류가 발생했습니다.' }, { status: 500 })
+  }
+}
+
+async function handleRoflFile(videoFile: File, customDescription: string, targetCharacters: string[]) {
+  try {
+    // ROFL 파일을 임시로 저장
+    const roflBuffer = await videoFile.arrayBuffer()
+    
+    // ROFL 파일 정보 추출 (실제로는 더 복잡한 파싱 필요)
+    const roflInfo = await extractRoflInfo(roflBuffer)
+    
+    // AI 판사에게 ROFL 데이터 기반 분석 요청
+    const aiJudge = new LolAIJudge()
+    const verdict = await aiJudge.judgeRoflReplay({
+      roflData: roflBuffer,
+      roflInfo,
+      customDescription,
+      targetCharacters
+    })
+
+    return NextResponse.json({ verdict })
+  } catch (error) {
+    console.error('ROFL 파일 처리 오류:', error)
+    return NextResponse.json({ 
+      error: 'ROFL 파일 처리 중 오류가 발생했습니다. 영상 파일로 변환 후 다시 시도해주세요.' 
+    }, { status: 500 })
+  }
+}
+
+async function handleVideoFile(videoFile: File, startTime: number, endTime: number, customDescription: string, targetCharacters: string[]) {
+  try {
+    // 기존 영상 처리 로직
+    const aiJudge = new LolAIJudge()
+    const verdict = await aiJudge.judgeVideo({
+      videoFile,
+      startTime,
+      endTime,
+      customDescription,
+      targetCharacters
+    })
+
+    return NextResponse.json({ verdict })
+  } catch (error) {
+    console.error('영상 파일 처리 오류:', error)
+    return NextResponse.json({ error: '영상 분석 중 오류가 발생했습니다.' }, { status: 500 })
+  }
+}
+
+async function extractRoflInfo(buffer: ArrayBuffer) {
+  // ROFL 파일 헤더 정보 추출 (실제 구현 필요)
+  const view = new DataView(buffer)
+  
+  // 기본적인 ROFL 파일 정보 추출
+  return {
+    gameVersion: 'Unknown',
+    gameDuration: 0,
+    players: [],
+    events: []
   }
 }
 

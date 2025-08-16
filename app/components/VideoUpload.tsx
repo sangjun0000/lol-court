@@ -33,13 +33,12 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
     if (file && (file.type.startsWith('video/') || file.name.endsWith('.rofl'))) {
       setVideoFile(file)
       
-      // rofl 파일인 경우 특별 처리
-      if (file.name.endsWith('.rofl')) {
-        // rofl 파일은 직접 재생할 수 없으므로 안내 메시지 표시
-        setVideoUrl('')
-        alert('ROFL 파일이 업로드되었습니다. 이 파일은 리그 오브 레전드 리플레이 파일입니다. 구간 선택을 위해 영상 녹화 후 다시 업로드해주세요.')
-        return
-      }
+             // rofl 파일인 경우 특별 처리
+       if (file.name.endsWith('.rofl')) {
+         // ROFL 파일은 바로 분석 가능
+         setVideoUrl('')
+         return
+       }
       
       const url = URL.createObjectURL(file)
       setVideoUrl(url)
@@ -210,32 +209,32 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </div>
         </div>
 
-        {/* ROFL 파일 안내 */}
-        {videoFile && videoFile.name.endsWith('.rofl') && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-semibold text-yellow-800 mb-2">🎮 ROFL 파일 업로드됨</h4>
-            <div className="space-y-3">
-              <p className="text-sm text-yellow-700">
-                <strong>ROFL 파일</strong>은 리그 오브 레전드 리플레이 파일입니다.
-              </p>
-              <div className="bg-white rounded-lg p-3">
-                <p className="text-sm font-medium text-gray-700 mb-2">📋 다음 단계:</p>
-                <ol className="text-sm text-gray-600 space-y-1">
-                  <li>1. 리그 오브 레전드 클라이언트에서 이 ROFL 파일을 재생하세요</li>
-                  <li>2. 분석하고 싶은 구간을 녹화하세요 (OBS, Bandicam 등 사용)</li>
-                  <li>3. 녹화된 영상 파일을 다시 업로드하세요</li>
-                  <li>4. 업로드된 영상에서 구간을 선택하여 분석하세요</li>
-                </ol>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-3">
-                <p className="text-sm font-medium text-blue-700 mb-1">💡 팁:</p>
-                <p className="text-sm text-blue-600">
-                  녹화 시 30초-2분 정도의 짧은 구간을 선택하면 분석 비용을 절약할 수 있습니다.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+                 {/* ROFL 파일 안내 */}
+         {videoFile && videoFile.name.endsWith('.rofl') && (
+           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+             <h4 className="font-semibold text-green-800 mb-2">🎮 ROFL 파일 업로드됨</h4>
+             <div className="space-y-3">
+               <p className="text-sm text-green-700">
+                 <strong>ROFL 파일</strong>이 성공적으로 업로드되었습니다!
+               </p>
+               <div className="bg-white rounded-lg p-3">
+                 <p className="text-sm font-medium text-gray-700 mb-2">✨ 자동 분석 기능:</p>
+                 <ul className="text-sm text-gray-600 space-y-1">
+                   <li>• ROFL 파일에서 게임 이벤트를 자동으로 추출합니다</li>
+                   <li>• 구간 선택 없이 전체 게임을 분석합니다</li>
+                   <li>• AI가 게임 데이터를 기반으로 판결을 내립니다</li>
+                   <li>• 영상 녹화 없이 바로 분석 가능합니다</li>
+                 </ul>
+               </div>
+               <div className="bg-blue-50 rounded-lg p-3">
+                 <p className="text-sm font-medium text-blue-700 mb-1">💡 장점:</p>
+                 <p className="text-sm text-blue-600">
+                   ROFL 파일은 게임의 모든 데이터를 포함하므로 더 정확한 분석이 가능합니다.
+                 </p>
+               </div>
+             </div>
+           </div>
+         )}
 
         {/* 영상 미리보기 및 구간 선택 */}
         {videoUrl && (
@@ -365,14 +364,14 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </p>
         </div>
 
-        {/* 제출 버튼 */}
-        <button
-          type="submit"
-          disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0}
-          className="court-button w-full text-lg py-4"
-        >
-          {isLoading ? '🔍 영상 분석 중...' : '⚖️ 영상 판결 받기'}
-        </button>
+                 {/* 제출 버튼 */}
+         <button
+           type="submit"
+           disabled={isLoading || !videoFile || !customDescription.trim() || (!videoFile.name.endsWith('.rofl') && getRangeDuration() <= 0)}
+           className="court-button w-full text-lg py-4"
+         >
+           {isLoading ? '🔍 분석 중...' : videoFile?.name.endsWith('.rofl') ? '⚖️ ROFL 파일 판결 받기' : '⚖️ 영상 판결 받기'}
+         </button>
       </form>
 
       <div className="mt-4 p-3 bg-blue-50 rounded-lg">

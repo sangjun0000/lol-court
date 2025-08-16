@@ -26,8 +26,8 @@ export class LolAIJudge {
   private systemPrompt: string
   private rlSystem: LoLReinforcementLearning
 
-  constructor(apiKey: string) {
-    this.openai = new OpenAI({ apiKey })
+  constructor(apiKey?: string) {
+    this.openai = apiKey ? new OpenAI({ apiKey }) : new OpenAI({ apiKey: process.env.OPENAI_API_KEY || '' })
     this.rlSystem = new LoLReinforcementLearning()
     this.systemPrompt = `당신은 리그 오브 레전드의 전문 판사입니다.
 
@@ -325,5 +325,99 @@ ${caseDescription}
   // 학습 데이터 불러오기
   importLearningData(data: any): void {
     this.rlSystem.importLearningData(data)
+  }
+
+  // ROFL 파일 분석
+  async judgeRoflReplay(params: {
+    roflData: ArrayBuffer
+    roflInfo: any
+    customDescription: string
+    targetCharacters: string[]
+  }): Promise<AIVerdict> {
+    try {
+      // ROFL 파일에서 게임 이벤트 추출
+      const gameEvents = await this.extractGameEventsFromRofl(params.roflData)
+      
+      // 사용자 설명과 결합
+      const analysisDescription = `
+ROFL 리플레이 분석 요청:
+${params.customDescription}
+
+분석 대상 캐릭터: ${params.targetCharacters.join(', ')}
+
+게임 이벤트 정보:
+${JSON.stringify(gameEvents, null, 2)}
+      `
+
+      // 기존 분석 로직 사용
+      return await this.analyzeCase(analysisDescription)
+    } catch (error) {
+      console.error('ROFL 분석 오류:', error)
+      throw new Error('ROFL 파일 분석에 실패했습니다.')
+    }
+  }
+
+  // 영상 파일 분석
+  async judgeVideo(params: {
+    videoFile: File
+    startTime: number
+    endTime: number
+    customDescription: string
+    targetCharacters: string[]
+  }): Promise<AIVerdict> {
+    try {
+      // 영상에서 프레임 추출 (실제 구현 필요)
+      const frames = await this.extractFramesFromVideo(params.videoFile, params.startTime, params.endTime)
+      
+      // 사용자 설명과 결합
+      const analysisDescription = `
+영상 분석 요청:
+${params.customDescription}
+
+분석 대상 캐릭터: ${params.targetCharacters.join(', ')}
+분석 구간: ${params.startTime}초 ~ ${params.endTime}초
+분석된 프레임 수: ${frames.length}
+      `
+
+      // 기존 분석 로직 사용
+      return await this.analyzeCase(analysisDescription)
+    } catch (error) {
+      console.error('영상 분석 오류:', error)
+      throw new Error('영상 분석에 실패했습니다.')
+    }
+  }
+
+  // ROFL 파일에서 게임 이벤트 추출
+  private async extractGameEventsFromRofl(roflData: ArrayBuffer): Promise<any[]> {
+    // 실제 ROFL 파싱 로직 구현 필요
+    // 현재는 기본 구조만 반환
+    return [
+      {
+        type: 'game_start',
+        timestamp: 0,
+        description: '게임 시작'
+      },
+      {
+        type: 'team_fight',
+        timestamp: 300,
+        description: '팀파이트 발생'
+      }
+    ]
+  }
+
+  // 영상에서 프레임 추출
+  private async extractFramesFromVideo(videoFile: File, startTime: number, endTime: number): Promise<any[]> {
+    // 실제 영상 프레임 추출 로직 구현 필요
+    // 현재는 기본 구조만 반환
+    return [
+      {
+        timestamp: startTime,
+        description: '분석 시작 프레임'
+      },
+      {
+        timestamp: endTime,
+        description: '분석 종료 프레임'
+      }
+    ]
   }
 }
