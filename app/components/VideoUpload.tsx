@@ -53,16 +53,22 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
            setIsConverting(true)
            setConversionProgress(0)
            
-           // 진행률 시뮬레이션 (10초 안에 완료)
-           const progressInterval = setInterval(() => {
-             setConversionProgress(prev => {
-               if (prev >= 95) {
-                 clearInterval(progressInterval)
-                 return 95
-               }
-               return prev + Math.random() * 15 + 5 // 5-20%씩 증가
-             })
-           }, 200) // 200ms마다 업데이트
+                       // 진행률 시뮬레이션 (10초 안에 완료)
+            const progressInterval = setInterval(() => {
+              setConversionProgress(prev => {
+                if (prev >= 100) {
+                  clearInterval(progressInterval)
+                  return 100
+                }
+                // 더 자연스러운 진행률 증가 (처음에는 빠르게, 나중에는 천천히)
+                const remaining = 100 - prev
+                const increment = Math.min(
+                  Math.random() * 10 + 3, // 3-13%씩 증가
+                  remaining * 0.3 // 남은 진행률의 30%까지만 증가
+                )
+                return Math.min(prev + increment, 100)
+              })
+            }, 150) // 150ms마다 업데이트 (더 빠르게)
            
            const formData = new FormData()
            formData.append('roflFile', file)
