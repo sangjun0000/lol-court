@@ -81,31 +81,25 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       const formData = new FormData()
       formData.append('roflFile', file)
       
-      const response = await fetch('/api/convert-rofl', {
+      const response = await fetch('/api/analyze-rofl', {
         method: 'POST',
         body: formData
       })
       
       if (response.ok) {
         const result = await response.json()
-        if (result.success && result.videoUrl) {
+        if (result.success) {
           setConversionProgress(100)
           setIsConverting(false)
           clearInterval(progressInterval)
           
-          setVideoUrl(result.videoUrl)
-          setVideoDuration(300)
-          setStartTime(0)
-          setEndTime(60)
+                     // ROFL 데이터 분석 결과 표시
+           setVideoUrl('') // 영상 URL 없음
+           setVideoDuration(result.gameDuration || 1200) // 기본 20분
+           setStartTime(0)
+           setEndTime(result.gameDuration || 1200) // 전체 구간
           
-          // ROFL 영상 자동 재생
-          setTimeout(() => {
-            const videoElement = document.getElementById('rofl-video') as HTMLVideoElement
-            if (videoElement) {
-              videoElement.load()
-              videoElement.play().catch(e => console.log('ROFL 영상 재생 실패:', e))
-            }
-          }, 1000)
+          
         }
       }
     } catch (error) {
@@ -354,75 +348,30 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </div>
         )}
 
-        {/* ROFL 영상 재생 및 구간 선택 */}
-        {videoUrl && videoFile?.name.endsWith('.rofl') && (
-          <div className="bg-gray-800 rounded-lg p-4">
-            <h4 className="text-lg font-semibold text-white mb-3">
-              🎬 ROFL 영상 재생
-            </h4>
-            
-            <video
-              id="rofl-video"
-              className="w-full h-64 object-cover rounded-lg mb-4"
-              controls
-              autoPlay
-              muted
-              playsInline
-              preload="auto"
-            >
-              <source src={videoUrl} type="video/mp4" />
-              브라우저가 비디오를 지원하지 않습니다.
-            </video>
-
-            <h4 className="text-lg font-semibold text-white mb-3">
-              🎯 분석 구간 선택
-            </h4>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  시작 시간: {formatTime(startTime)}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="300"
-                  value={startTime}
-                  onChange={(e) => setStartTime(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  종료 시간: {formatTime(endTime)}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="300"
-                  value={endTime}
-                  onChange={(e) => setEndTime(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              <div className="text-center text-sm text-gray-400">
-                선택된 구간: {formatTime(startTime)} - {formatTime(endTime)} ({formatTime(getRangeDuration())})
-              </div>
-
-              {startTime < endTime && (
-                <div className="bg-blue-900 bg-opacity-50 rounded-lg p-3">
-                  <div className="text-center text-white">
-                    <div className="text-lg font-semibold">
-                      💰 예상 비용: ₩{getCurrentCost() ? CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0) : 0}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                 {/* ROFL 파일 분석 결과 */}
+         {!videoUrl && videoFile?.name.endsWith('.rofl') && !isConverting && (
+           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+             <h4 className="font-semibold text-blue-800 mb-2">📊 ROFL 파일 분석 완료</h4>
+             <div className="text-sm text-blue-700 space-y-1">
+               <p>• 게임 데이터 분석이 완료되었습니다</p>
+               <p>• 전체 게임 구간이 분석 대상입니다</p>
+               <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
+             </div>
+             
+             {getCurrentCost() && (
+               <div className="mt-3 bg-blue-100 rounded-lg p-3">
+                 <div className="text-center">
+                   <div className="text-lg font-semibold text-blue-800">
+                     💰 예상 비용: ₩{CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0)}
+                   </div>
+                   <div className="text-sm text-blue-600">
+                     ROFL 파일 전체 분석
+                   </div>
+                 </div>
+               </div>
+             )}
+           </div>
+         )}
 
         {/* 일반 영상 재생 및 구간 선택 */}
         {videoUrl && !videoFile?.name.endsWith('.rofl') && (

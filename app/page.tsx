@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Head from 'next/head'
 import VideoUpload, { VideoUploadData } from './components/VideoUpload'
-import MatchHistorySearch, { MatchData } from './components/MatchHistorySearch'
+
 import VerdictDisplay from './components/VerdictDisplay'
 import Header from './components/Header'
 import { HeaderAd, SidebarAd, InlineAd, FooterAd } from './components/AdBanner'
@@ -43,7 +43,7 @@ export interface Verdict {
 export default function Home() {
   const [verdict, setVerdict] = useState<Verdict | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<'upload' | 'history'>('upload')
+  const [activeTab, setActiveTab] = useState<'upload'>('upload')
 
   const handleVideoUpload = async (data: VideoUploadData) => {
     setIsLoading(true)
@@ -98,69 +98,7 @@ export default function Home() {
     }
   }
 
-  const handleMatchHistoryAnalysis = async (matchData: MatchData, highlight: { startTime: number, endTime: number, description: string }, customDescription: string) => {
-    setIsLoading(true)
-    try {
-      // 전적 데이터를 기반으로 영상 분석 요청 생성
-      const analysisRequest: VideoUploadData = {
-        videoFile: new File([], 'match-replay.mp4'), // 실제로는 리플레이 파일이 필요
-        analysisType: 'custom',
-        targetCharacters: [matchData.champion],
-        startTime: highlight.startTime,
-        endTime: highlight.endTime,
-        customDescription: customDescription
-      }
 
-      // 영상 분석 API 호출
-      const formData = new FormData()
-      formData.append('video', analysisRequest.videoFile)
-      formData.append('analysisType', analysisRequest.analysisType)
-      formData.append('targetCharacters', JSON.stringify(analysisRequest.targetCharacters))
-      formData.append('startTime', analysisRequest.startTime.toString())
-      formData.append('endTime', analysisRequest.endTime.toString())
-      if (analysisRequest.customDescription) {
-        formData.append('customDescription', analysisRequest.customDescription)
-      }
-
-      const response = await fetch('/api/analyze-video', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('전적 분석에 실패했습니다.')
-      }
-
-      const data = await response.json()
-      setVerdict({
-        case: `전적 분석: ${matchData.champion} - ${highlight.description}`,
-        verdict: data.verdict,
-        reasoning: data.reasoning,
-        punishment: data.punishment,
-        timestamp: new Date(),
-        confidence: data.confidence,
-        factors: data.factors,
-        recommendations: data.recommendations,
-        characterAnalysis: data.characterAnalysis,
-        reinforcementLearning: data.reinforcementLearning,
-        videoAnalysis: {
-          analysisType: 'match-history',
-          targetCharacters: [matchData.champion],
-          timeRange: {
-            start: highlight.startTime,
-            end: highlight.endTime,
-            duration: highlight.endTime - highlight.startTime
-          },
-          framesAnalyzed: 0
-        }
-      })
-    } catch (error) {
-      console.error('전적 분석 오류:', error)
-      alert('전적 분석 중 오류가 발생했습니다.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <>
@@ -234,24 +172,9 @@ export default function Home() {
         <div className="flex justify-center mb-8">
           <div className="bg-white rounded-lg p-1 shadow-lg">
             <button
-              onClick={() => setActiveTab('upload')}
-              className={`px-6 py-3 rounded-md font-medium transition-colors ${
-                activeTab === 'upload'
-                  ? 'bg-lol-gold text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              className="px-6 py-3 rounded-md font-medium transition-colors bg-lol-gold text-white shadow-md"
             >
               🎬 직접 영상 올리기
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`px-6 py-3 rounded-md font-medium transition-colors ${
-                activeTab === 'history'
-                  ? 'bg-lol-gold text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              🔍 전적에서 영상찾기
             </button>
           </div>
         </div>
@@ -265,11 +188,7 @@ export default function Home() {
           <div className="flex-1">
             {/* 폼 영역 */}
             <div className="max-w-4xl mx-auto mb-8">
-              {activeTab === 'upload' ? (
-                <VideoUpload onSubmit={handleVideoUpload} isLoading={isLoading} />
-              ) : (
-                <MatchHistorySearch onVideoAnalysisRequest={handleMatchHistoryAnalysis} />
-              )}
+              <VideoUpload onSubmit={handleVideoUpload} isLoading={isLoading} />
             </div>
 
             {/* 인라인 광고 */}
@@ -297,12 +216,12 @@ export default function Home() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">🔍 전적에서 영상찾기</h4>
+                    <h4 className="font-semibold text-gray-800 mb-2">📁 ROFL 파일 분석</h4>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• 소환사명으로 전적을 검색하세요</li>
-                      <li>• 최근 게임 기록을 확인하세요</li>
-                      <li>• 주요 구간을 자동으로 찾아드립니다</li>
-                      <li>• 원클릭으로 분석 요청이 가능합니다</li>
+                      <li>• ROFL 파일을 업로드하세요</li>
+                      <li>• 게임 데이터를 자동으로 분석합니다</li>
+                      <li>• 분석하고 싶은 상황을 자세히 설명하세요</li>
+                      <li>• AI가 게임 데이터를 기반으로 판결합니다</li>
                     </ul>
                   </div>
                 </div>
