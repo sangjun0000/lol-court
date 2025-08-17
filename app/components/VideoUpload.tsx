@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { CostCalculator, CostBreakdown } from '@/app/lib/costCalculator'
+import { CostBreakdown } from '@/app/lib/costCalculator'
 import PaymentModal from './PaymentModal'
 
 export interface VideoUploadData {
@@ -21,40 +21,29 @@ interface VideoUploadProps {
 
 export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [videoFile, setVideoFile] = useState<File | null>(null)
-  const [videoUrl, setVideoUrl] = useState<string>('')
-  const [startTime, setStartTime] = useState<number>(0)
-  const [endTime, setEndTime] = useState<number>(0)
-  const [videoDuration, setVideoDuration] = useState<number>(0)
   const [customDescription, setCustomDescription] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [calculatedCost, setCalculatedCost] = useState<CostBreakdown | null>(null)
   const [conversionProgress, setConversionProgress] = useState<number>(0)
   const [isConverting, setIsConverting] = useState<boolean>(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
 
   // 파일 업로드 처리
   const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0]
       if (error.code === 'file-too-large') {
-        alert('파일이 너무 큽니다. 50MB 이하의 파일을 업로드해주세요.')
+        alert('파일이 너무 큽니다. 10MB 이하의 ROFL 파일을 업로드해주세요.')
         return
       }
     }
     
     const file = acceptedFiles[0]
-    if (file && (file.type.startsWith('video/') || file.name.endsWith('.rofl'))) {
+    if (file && file.name.endsWith('.rofl')) {
       setVideoFile(file)
-      
-      // ROFL 파일 처리
-      if (file.name.endsWith('.rofl')) {
-        await handleRoflFile(file)
-        return
-      }
-      
-      // 일반 영상 파일 처리
-      handleVideoFile(file)
+      await handleRoflFile(file)
+    } else {
+      alert('ROFL 파일만 업로드 가능합니다.')
     }
   }, [])
 
@@ -92,118 +81,45 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           setConversionProgress(100)
           setIsConverting(false)
           clearInterval(progressInterval)
-          
-                     // ROFL 데이터 분석 결과 표시
-           setVideoUrl('') // 영상 URL 없음
-           setVideoDuration(result.gameDuration || 1200) // 기본 20분
-           setStartTime(0)
-           setEndTime(result.gameDuration || 1200) // 전체 구간
-          
-          
         }
       }
     } catch (error) {
-      console.error('ROFL 변환 실패:', error)
+      console.error('ROFL 분석 실패:', error)
       setIsConverting(false)
       setConversionProgress(0)
     }
-  }
-
-  // 일반 영상 파일 처리
-  const handleVideoFile = (file: File) => {
-    const url = URL.createObjectURL(file)
-    setVideoUrl(url)
-    
-    // 영상 로드 후 기본 구간 설정
-    setTimeout(() => {
-      if (videoRef.current && videoRef.current.duration > 30) {
-        setEndTime(30)
-      }
-    }, 1000)
   }
 
   // Dropzone 설정
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
-      'video/*': ['.mp4', '.avi', '.mov', '.mkv', '.webm'],
       'application/octet-stream': ['.rofl']
     },
     maxFiles: 1,
-    maxSize: 50 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024, // 10MB
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false)
   })
 
-  // 영상 로드 처리
-  const handleVideoLoad = () => {
-    if (videoRef.current) {
-      const duration = videoRef.current.duration
-      setVideoDuration(duration)
-      setEndTime(Math.min(30, duration))
-      
-      // 영상 자동 재생
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.muted = true
-          videoRef.current.play().catch(e => console.log('영상 자동 재생 실패:', e))
-        }
-      }, 1000)
-    }
-  }
-
-  // 구간 선택 처리
-  const handleStartTimeChange = (value: number) => {
-    setStartTime(value)
-    if (videoRef.current) {
-      videoRef.current.currentTime = value
-    }
-  }
-
-  const handleEndTimeChange = (value: number) => {
-    setEndTime(value)
-    if (videoRef.current) {
-      videoRef.current.currentTime = value
-    }
-  }
-
-  // 빠른 구간 설정
-  const setQuickRange = (type: 'start30' | 'start60' | 'middle60') => {
-    switch (type) {
-      case 'start30':
-        setStartTime(0)
-        setEndTime(Math.min(30, videoDuration))
-        if (videoRef.current) videoRef.current.currentTime = 0
-        break
-      case 'start60':
-        setStartTime(0)
-        setEndTime(Math.min(60, videoDuration))
-        if (videoRef.current) videoRef.current.currentTime = 0
-        break
-      case 'middle60':
-        const midPoint = videoDuration / 2
-        setStartTime(Math.max(0, midPoint - 30))
-        setEndTime(Math.min(videoDuration, midPoint + 30))
-        if (videoRef.current) videoRef.current.currentTime = midPoint
-        break
-    }
-  }
-
   // 비용 계산
   const getCurrentCost = () => {
-    if (!videoFile || getRangeDuration() <= 0) return null
+    if (!videoFile) return null
     
-    const duration = getRangeDuration()
-    const fileType = videoFile.name.endsWith('.rofl') ? 'rofl' : 'video'
+    // ROFL 파일 크기에 비례한 비용 계산
+    const fileSizeMB = videoFile.size / (1024 * 1024)
+    const apiCost = fileSizeMB * 100 // 1MB당 100원
+    const platformFee = 500 // 고정 수수료 500원
+    const totalCost = apiCost + platformFee
     
-    return CostCalculator.calculateCost({
-      duration,
-      fileType,
-      quality: 'standard'
-    })
+    return {
+      apiCost,
+      platformFee,
+      totalCost,
+      fileSizeMB: Math.round(fileSizeMB * 100) / 100,
+      currency: 'KRW'
+    }
   }
-
-  const getRangeDuration = () => endTime - startTime
 
   // 폼 제출
   const handleSubmit = (e: React.FormEvent) => {
@@ -224,8 +140,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       
       onSubmit({
         videoFile,
-        startTime,
-        endTime,
+        startTime: 0,
+        endTime: 1200, // 전체 구간 (20분)
         targetCharacters: characterNames,
         analysisType: 'custom',
         customDescription
@@ -252,12 +168,6 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   }
 
   // 유틸리티 함수들
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -269,14 +179,14 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   return (
     <div className="bg-white rounded-xl shadow-2xl p-6 border-2 border-lol-gold">
       <h3 className="text-2xl font-bold text-court-brown mb-6">
-        🎬 영상 업로드 및 분석
+        📁 ROFL 파일 업로드 및 분석
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 파일 업로드 영역 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            📹 롤 게임 영상 업로드 *
+            📹 ROFL 파일 업로드 *
           </label>
           
           <div
@@ -295,10 +205,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
               <div>
                 <div className="text-6xl mb-4">📁</div>
                 <p className="text-lg font-medium text-gray-700 mb-2">
-                  영상을 여기에 드래그하거나 클릭하여 업로드
+                  ROFL 파일을 여기에 드래그하거나 클릭하여 업로드
                 </p>
                 <p className="text-sm text-gray-500">
-                  MP4, AVI, MOV, MKV, WebM, ROFL 형식 지원 (최대 50MB)
+                  ROFL 파일만 업로드 가능 (최대 10MB)
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   💡 ROFL 파일은 리그 오브 레전드 리플레이 파일입니다
@@ -318,24 +228,20 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                   onClick={(e) => {
                     e.stopPropagation()
                     setVideoFile(null)
-                    setVideoUrl('')
-                    setVideoDuration(0)
-                    setStartTime(0)
-                    setEndTime(0)
                   }}
                   className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
                 >
-                  다른 영상 선택
+                  다른 파일 선택
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* ROFL 변환 진행률 */}
+        {/* ROFL 분석 진행률 */}
         {isConverting && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-semibold text-yellow-800 mb-2">🔄 ROFL 파일 변환 중...</h4>
+            <h4 className="font-semibold text-yellow-800 mb-2">🔄 ROFL 파일 분석 중...</h4>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div 
                 className="bg-yellow-600 h-2.5 rounded-full transition-all duration-300"
@@ -348,178 +254,42 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           </div>
         )}
 
-                 {/* ROFL 파일 분석 결과 */}
-         {!videoUrl && videoFile?.name.endsWith('.rofl') && !isConverting && (
-           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-             <h4 className="font-semibold text-blue-800 mb-2">📊 ROFL 파일 분석 완료</h4>
-             <div className="text-sm text-blue-700 space-y-1">
-               <p>• 게임 데이터 분석이 완료되었습니다</p>
-               <p>• 전체 게임 구간이 분석 대상입니다</p>
-               <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
-             </div>
-             
-             {getCurrentCost() && (
-               <div className="mt-3 bg-blue-100 rounded-lg p-3">
-                 <div className="text-center">
-                   <div className="text-lg font-semibold text-blue-800">
-                     💰 예상 비용: ₩{CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0)}
-                   </div>
-                   <div className="text-sm text-blue-600">
-                     ROFL 파일 전체 분석
-                   </div>
-                 </div>
-               </div>
-             )}
-           </div>
-         )}
-
-        {/* 일반 영상 재생 및 구간 선택 */}
-        {videoUrl && !videoFile?.name.endsWith('.rofl') && (
-          <div className="bg-gray-100 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">
-              🎥 영상 미리보기 및 구간 선택
-            </h4>
+        {/* ROFL 파일 분석 결과 */}
+        {videoFile?.name.endsWith('.rofl') && !isConverting && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-800 mb-2">📊 ROFL 파일 분석 완료</h4>
+            <div className="text-sm text-blue-700 space-y-1">
+              <p>• 게임 데이터 분석이 완료되었습니다</p>
+              <p>• 전체 게임 구간이 분석 대상입니다</p>
+              <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
+            </div>
             
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              controls
-              autoPlay
-              muted
-              playsInline
-              preload="auto"
-              className="w-full rounded-lg mb-4"
-              onLoadedMetadata={handleVideoLoad}
-            />
-
-            <div className="bg-blue-50 rounded-lg p-3 mb-4">
-              <p className="text-sm text-blue-700 font-medium mb-2">
-                🎯 분석 구간 선택 방법:
-              </p>
-              <ul className="text-sm text-blue-600 space-y-1">
-                <li>• 영상이 자동으로 재생됩니다 (음소거 상태)</li>
-                <li>• 아래 슬라이더로 시작과 종료 지점을 설정하세요</li>
-                <li>• 설정한 구간이 실시간으로 표시됩니다</li>
-              </ul>
-            </div>
-
-            {/* 구간 정보 표시 */}
-            <div className="bg-gradient-to-r from-green-50 to-red-50 rounded-lg p-4 border-2 border-gray-200 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div className="bg-white rounded-lg p-3 border border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">🎬 시작 시간</p>
-                  <p className="text-xl font-bold text-green-600">{formatTime(startTime)}</p>
-                </div>
-                <div className="bg-white rounded-lg p-3 border border-red-200">
-                  <p className="text-sm text-gray-600 mb-1">⏹️ 종료 시간</p>
-                  <p className="text-xl font-bold text-red-600">{formatTime(endTime)}</p>
-                </div>
-                <div className="bg-white rounded-lg p-3 border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">📊 분석 구간</p>
-                  <p className="text-xl font-bold text-blue-600">{formatTime(getRangeDuration())}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 구간 선택 슬라이더 */}
-            <div className="bg-white rounded-lg p-4 border-2 border-gray-200 mb-4">
-              <h5 className="text-sm font-medium text-gray-700 mb-2">🎯 구간 선택 바</h5>
-              
-              <div className="mb-4">
-                <label className="block text-sm text-gray-600 mb-2">
-                  🎬 시작 시간: {formatTime(startTime)}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max={videoDuration}
-                  value={startTime}
-                  onChange={(e) => handleStartTimeChange(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm text-gray-600 mb-2">
-                  ⏹️ 종료 시간: {formatTime(endTime)}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max={videoDuration}
-                  value={endTime}
-                  onChange={(e) => handleEndTimeChange(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-              
-              <div className="flex justify-between text-xs text-gray-600 mb-4">
-                <span>0:00</span>
-                <span>{formatTime(videoDuration)}</span>
-              </div>
-              
-              {/* 빠른 설정 버튼 */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setQuickRange('start30')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                >
-                  처음 30초
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickRange('start60')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                >
-                  처음 1분
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickRange('middle60')}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
-                >
-                  중간 1분
-                </button>
-              </div>
-            </div>
-
-            {/* 실시간 비용 표시 */}
             {getCurrentCost() && (
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border-2 border-green-200 mb-4">
-                <h5 className="text-lg font-bold text-green-800 mb-3 text-center">
-                  💰 실시간 비용 계산
-                </h5>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-4">
-                  <div className="bg-white rounded-lg p-3 border border-green-200">
-                    <p className="text-sm text-gray-600 mb-1">API 사용료</p>
-                    <p className="text-lg font-bold text-green-600">
-                      ${getCurrentCost()?.apiCost} (₩{CostCalculator.convertToKRW(getCurrentCost()?.apiCost || 0)})
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-blue-200">
-                    <p className="text-sm text-gray-600 mb-1">플랫폼 수수료</p>
-                    <p className="text-lg font-bold text-blue-600">
-                      ${getCurrentCost()?.platformFee} (₩{CostCalculator.convertToKRW(getCurrentCost()?.platformFee || 0)})
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-purple-200">
-                    <p className="text-sm text-gray-600 mb-1">총 비용</p>
-                    <p className="text-xl font-bold text-purple-600">
-                      ${getCurrentCost()?.totalCost} (₩{CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0)})
-                    </p>
-                  </div>
-                </div>
+              <div className="mt-3 bg-blue-100 rounded-lg p-3">
                 <div className="text-center">
-                  <p className="text-sm text-gray-600">
-                    분석 구간: {formatTime(getRangeDuration())} • 
-                    파일 타입: {videoFile?.name.endsWith('.rofl') ? 'ROFL' : '영상'}
-                  </p>
+                  <div className="text-lg font-semibold text-blue-800">
+                    💰 예상 비용: ₩{getCurrentCost()?.totalCost}
+                  </div>
+                  <div className="text-sm text-blue-600">
+                    파일 크기: {getCurrentCost()?.fileSizeMB}MB • API 비용: ₩{getCurrentCost()?.apiCost} • 수수료: ₩{getCurrentCost()?.platformFee}
+                  </div>
                 </div>
               </div>
             )}
           </div>
         )}
+
+        {/* ROFL 파일 다운로드 방법 안내 */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 className="font-semibold text-green-800 mb-2">📋 ROFL 파일 다운로드 방법</h4>
+          <div className="text-sm text-green-700 space-y-2">
+            <p>1. 리그 오브 레전드 클라이언트에 접속하세요</p>
+            <p>2. 닉네임 옆의 초상화를 클릭하세요</p>
+            <p>3. 대전기록 탭을 클릭하세요</p>
+            <p>4. 분석을 원하는 게임을 선택하세요</p>
+            <p>5. "다운로드" 버튼을 클릭하여 ROFL 파일을 다운로드하세요</p>
+          </div>
+        </div>
 
         {/* 분석 상황 설명 */}
         <div>
@@ -541,20 +311,20 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         {/* 결제 버튼 */}
         <button
           type="submit"
-          disabled={isLoading || !videoFile || !customDescription.trim() || getRangeDuration() <= 0 || !getCurrentCost()}
+          disabled={isLoading || !videoFile || !customDescription.trim() || !getCurrentCost()}
           className="court-button w-full text-lg py-4"
         >
-          {isLoading ? '🔍 분석 중...' : `💳 결제하기 (${getCurrentCost() ? `₩${CostCalculator.convertToKRW(getCurrentCost()?.totalCost || 0)}` : '비용 계산 중...'})`}
+          {isLoading ? '🔍 분석 중...' : `💳 결제하기 (${getCurrentCost() ? `₩${getCurrentCost()?.totalCost}` : '비용 계산 중...'})`}
         </button>
       </form>
 
       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-700">
-          💡 <strong>영상 업로드 사용법:</strong><br/>
-          1. 롤 게임 영상을 드래그하거나 클릭하여 업로드하세요<br/>
-          2. 영상에서 분석하고 싶은 구간을 선택하세요 (비용 절약을 위해 짧게)<br/>
+          💡 <strong>ROFL 파일 분석 사용법:</strong><br/>
+          1. 롤 클라이언트에서 ROFL 파일을 다운로드하세요<br/>
+          2. ROFL 파일을 드래그하거나 클릭하여 업로드하세요<br/>
           3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
-          4. AI가 선택한 구간을 분석하여 객관적인 판결을 내립니다
+          4. AI가 게임 데이터를 분석하여 객관적인 판결을 내립니다
         </p>
       </div>
 
@@ -565,7 +335,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           onClose={() => setShowPaymentModal(false)}
           onConfirm={handlePaymentConfirm}
           cost={calculatedCost}
-          duration={getRangeDuration()}
+          duration={1200}
           fileName={videoFile?.name || ''}
         />
       )}

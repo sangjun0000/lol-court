@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Head from 'next/head'
 import VideoUpload, { VideoUploadData } from './components/VideoUpload'
-
 import VerdictDisplay from './components/VerdictDisplay'
+import GameEvaluation from './components/GameEvaluation'
 import Header from './components/Header'
 import { HeaderAd, SidebarAd, InlineAd, FooterAd } from './components/AdBanner'
 
@@ -44,6 +44,8 @@ export default function Home() {
   const [verdict, setVerdict] = useState<Verdict | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'upload'>('upload')
+  const [gameEvaluation, setGameEvaluation] = useState<any>(null)
+  const [showGameEvaluation, setShowGameEvaluation] = useState(false)
 
   const handleVideoUpload = async (data: VideoUploadData) => {
     setIsLoading(true)
@@ -68,8 +70,15 @@ export default function Home() {
       }
 
       const responseData = await response.json()
+      
+      // ROFL 파일인 경우 게임 평가 데이터도 설정
+      if (data.videoFile.name.endsWith('.rofl')) {
+        setGameEvaluation(responseData.gameAnalysis)
+        setShowGameEvaluation(true)
+      }
+      
       setVerdict({
-        case: `영상 업로드 분석: ${data.analysisType} 상황`,
+        case: `ROFL 파일 분석: ${data.analysisType} 상황`,
         verdict: responseData.verdict,
         reasoning: responseData.reasoning,
         punishment: responseData.punishment,
@@ -80,7 +89,7 @@ export default function Home() {
         characterAnalysis: responseData.characterAnalysis,
         reinforcementLearning: responseData.reinforcementLearning,
         videoAnalysis: {
-          analysisType: 'video-upload',
+          analysisType: 'rofl-analysis',
           targetCharacters: data.targetCharacters,
           timeRange: {
             start: data.startTime,
@@ -197,6 +206,17 @@ export default function Home() {
             {/* 판결 결과 */}
             {verdict && (
               <VerdictDisplay verdict={verdict} />
+              
+              {/* 게임 평가 표시 */}
+              {showGameEvaluation && gameEvaluation && (
+                <div className="mt-8">
+                  <GameEvaluation 
+                    players={gameEvaluation.participants}
+                    gameAnalysis={gameEvaluation}
+                    isVisible={showGameEvaluation}
+                  />
+                </div>
+              )}
             )}
 
             {/* 사용법 안내 */}
