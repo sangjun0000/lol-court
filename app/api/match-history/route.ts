@@ -32,7 +32,12 @@ export async function POST(request: NextRequest) {
     const accountResponse = await fetch(accountUrl, {
       headers: {
         'X-Riot-Token': RIOT_API_KEY,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Charset': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Origin': 'https://developer.riotgames.com',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     })
 
@@ -72,7 +77,12 @@ export async function POST(request: NextRequest) {
     const summonerResponse = await fetch(summonerUrl, {
       headers: {
         'X-Riot-Token': RIOT_API_KEY,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Charset': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Origin': 'https://developer.riotgames.com',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     })
 
@@ -90,7 +100,12 @@ export async function POST(request: NextRequest) {
       {
         headers: {
           'X-Riot-Token': RIOT_API_KEY,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Accept-Charset': 'application/x-www-form-urlencoded; charset=UTF-8',
+          'Origin': 'https://developer.riotgames.com',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       }
     )
@@ -129,7 +144,12 @@ export async function POST(request: NextRequest) {
           {
             headers: {
               'X-Riot-Token': RIOT_API_KEY,
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+              'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+              'Accept-Charset': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'Origin': 'https://developer.riotgames.com',
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
             }
           }
         )
