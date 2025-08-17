@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Head from 'next/head'
 import VideoUpload, { VideoUploadData } from './components/VideoUpload'
 import MatchHistorySearch, { MatchData } from './components/MatchHistorySearch'
 import VerdictDisplay from './components/VerdictDisplay'
@@ -162,9 +163,69 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-court-brown via-lol-gold to-yellow-400">
-      {/* 헤더 광고 */}
-      <HeaderAd />
+    <>
+      <Head>
+        {/* 구조화된 데이터 - FAQ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "롤문철이란 무엇인가요?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "롤문철은 리그 오브 레전드 게임에서 발생하는 분쟁을 AI가 공정하게 판결하는 시스템입니다. 롤법원이라고도 불립니다."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "롤법원에서 어떻게 판결을 받나요?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "게임 영상을 업로드하고 분석하고 싶은 구간을 선택한 후, 상황을 설명하면 AI가 객관적인 판결을 내려드립니다."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "롤문철 사이트는 어디인가요?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "롤법원(롤문철)은 AI 기반 롤 게임 판결 시스템으로, 게임 분쟁을 공정하게 해결해드립니다."
+                  }
+                }
+              ]
+            })
+          }}
+        />
+        
+        {/* 구조화된 데이터 - 웹사이트 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "롤법원",
+              "alternateName": "롤문철",
+              "url": "https://lol-court-judge.vercel.app",
+              "description": "AI 기반 롤 게임 판결 시스템 - 롤문철, 롤법원",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://lol-court-judge.vercel.app",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+      </Head>
+      
+      <main className="min-h-screen bg-gradient-to-br from-court-brown via-lol-gold to-yellow-400">
+        {/* 헤더 광고 */}
+        <HeaderAd />
       
       <div className="container mx-auto px-4 py-8">
         <Header />
@@ -253,6 +314,7 @@ export default function Home() {
 
       {/* 푸터 광고 */}
       <FooterAd />
-    </main>
+      </main>
+    </>
   )
 }

@@ -6,9 +6,9 @@ import Script from 'next/script'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '롤법원 - AI 기반 롤문철',
-  description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템',
-  keywords: '롤, 리그오브레전드, 롤문철, AI판결, 게임분석, 롤법원',
+  title: '롤법원 - AI 기반 롤문철 | 롤 게임 판결 시스템',
+  description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템. 롤문철, 롤법원으로 검색하세요. 게임 분쟁을 AI가 공정하게 판결합니다.',
+  keywords: '롤문철, 롤법원, 롤, 리그오브레전드, AI판결, 게임분석, 롤게임, 롤판결, 롤문철사이트, 롤법원사이트, 롤분쟁, 롤AI, 롤판사',
   authors: [{ name: '롤법원 개발팀' }],
   robots: {
     index: true,
@@ -22,12 +22,20 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: '롤법원 - AI 기반 롤문철',
-    description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템',
+    title: '롤법원 - AI 기반 롤문철 | 롤 게임 판결 시스템',
+    description: '리그 오브 레전드 게임 상황에 대한 AI 판결 시스템. 롤문철, 롤법원으로 검색하세요. 게임 분쟁을 AI가 공정하게 판결합니다.',
     type: 'website',
     locale: 'ko_KR',
     url: 'https://lol-court-judge.vercel.app',
     siteName: '롤법원',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: '롤법원 - AI 기반 롤문철',
+      },
+    ],
   },
   verification: {
     google: 'google-site-verification-code', // Google Search Console에서 받은 코드
