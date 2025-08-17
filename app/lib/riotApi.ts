@@ -7,7 +7,7 @@ export class RiotApiClient {
   }
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || process.env.RIOT_API_KEY || 'RGAPI-1e6d8794-f7cd-4bd2-b8fd-d798ccd9b7f0'
+    this.apiKey = apiKey || process.env.RIOT_API_KEY || 'RGAPI-7a9b7937-4452-45c0-a7ee-83249b5a1171'
   }
 
   // 소환사 정보 조회

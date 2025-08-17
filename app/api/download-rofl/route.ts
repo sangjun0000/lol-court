@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // 롤 API 키 (환경변수에서 가져옴)
-const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-1e6d8794-f7cd-4bd2-b8fd-d798ccd9b7f0'
+const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-7a9b7937-4452-45c0-a7ee-83249b5a1171'
 
 export async function POST(request: NextRequest) {
   try {
