@@ -32,10 +32,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0]
-      if (error.code === 'file-too-large') {
-        alert('파일이 너무 큽니다. 10MB 이하의 ROFL 파일을 업로드해주세요.')
-        return
-      }
+               if (error.code === 'file-too-large') {
+           alert('파일이 너무 큽니다. 100MB 이하의 ROFL 파일을 업로드해주세요.')
+           return
+         }
     }
     
     const file = acceptedFiles[0]
@@ -97,7 +97,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
       'application/octet-stream': ['.rofl']
     },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 100 * 1024 * 1024, // 100MB
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false)
   })
@@ -208,7 +208,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                   ROFL 파일을 여기에 드래그하거나 클릭하여 업로드
                 </p>
                 <p className="text-sm text-gray-500">
-                  ROFL 파일만 업로드 가능 (최대 10MB)
+                  ROFL 파일만 업로드 가능 (최대 100MB)
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
                   💡 ROFL 파일은 리그 오브 레전드 리플레이 파일입니다
