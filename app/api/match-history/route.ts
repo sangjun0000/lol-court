@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { MatchData } from '@/app/components/MatchHistorySearch'
 
 // 롤 API 키 (환경변수에서 가져옴)
-const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-4684dd3e-30fb-443e-943f-57b8f3d17572'
+const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-1e6d8794-f7cd-4bd2-b8fd-d798ccd9b7f0'
 
 export async function POST(request: NextRequest) {
   try {
     const { summonerName, region } = await request.json()
     
-    console.log('전적검색 요청:', { summonerName, region })
+    console.log('전적검색 요청:', { summonerName, region, apiKey: RIOT_API_KEY ? '설정됨' : '설정안됨' })
 
     if (!summonerName) {
       return NextResponse.json(
@@ -73,15 +73,19 @@ export async function POST(request: NextRequest) {
     const regionEndpoint = getRegionEndpoint(region)
     const matchEndpoint = getMatchEndpoint(region)
 
+    console.log('API 엔드포인트:', { regionEndpoint, matchEndpoint })
+
     // 1. 소환사 정보 가져오기
-    const summonerResponse = await fetch(
-      `https://${regionEndpoint}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
-      {
-        headers: {
-          'X-Riot-Token': RIOT_API_KEY
-        }
+    const summonerUrl = `https://${regionEndpoint}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`
+    console.log('소환사 API 호출:', summonerUrl)
+    
+    const summonerResponse = await fetch(summonerUrl, {
+      headers: {
+        'X-Riot-Token': RIOT_API_KEY
       }
-    )
+    })
+
+    console.log('소환사 API 응답:', { status: summonerResponse.status, ok: summonerResponse.ok })
 
     if (!summonerResponse.ok) {
       if (summonerResponse.status === 404) {

@@ -88,10 +88,14 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
         setError('최근 게임 기록이 없습니다.')
         setMatches([])
       }
-    } catch (error) {
-      console.error('전적 검색 오류:', error)
-      setError('전적을 불러오는 중 오류가 발생했습니다.')
-    } finally {
+         } catch (error) {
+       console.error('전적 검색 오류:', error)
+       if (error instanceof Error) {
+         setError(`전적 검색 오류: ${error.message}`)
+       } else {
+         setError('전적을 불러오는 중 오류가 발생했습니다.')
+       }
+     } finally {
       setIsLoading(false)
     }
   }
