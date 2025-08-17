@@ -114,6 +114,42 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
     }
   }
 
+  const handleRoflDownload = async (match: MatchData) => {
+    try {
+      const response = await fetch('/api/download-rofl', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          matchId: match.matchId,
+          region: region
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        alert(errorData.error || 'ROFL 파일 다운로드에 실패했습니다.')
+        return
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${match.champion}_${match.matchId}.rofl`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      alert('ROFL 파일이 성공적으로 다운로드되었습니다!')
+    } catch (error) {
+      console.error('ROFL 다운로드 오류:', error)
+      alert('ROFL 파일 다운로드 중 오류가 발생했습니다.')
+    }
+  }
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -236,6 +272,12 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
                       className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200"
                     >
                       🎬 구간 선택
+                    </button>
+                    <button
+                      onClick={() => handleRoflDownload(match)}
+                      className="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200"
+                    >
+                      📁 ROFL 다운로드
                     </button>
                   </div>
                 </div>
@@ -372,7 +414,11 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
           2. 최근 게임 기록을 확인하세요<br/>
           3. 분석하고 싶은 게임의 "구간 선택"을 클릭하세요<br/>
           4. 분석 구간을 조정하고 상황을 설명하세요<br/>
-          5. AI가 선택한 구간을 분석하여 객관적인 판결을 내립니다
+          5. AI가 선택한 구간을 분석하여 객관적인 판결을 내립니다<br/>
+          <br/>
+          📁 <strong>ROFL 파일 다운로드:</strong><br/>
+          • 각 게임마다 "📁 ROFL 다운로드" 버튼을 클릭하면 리플레이 파일을 다운로드할 수 있습니다<br/>
+          • 다운로드한 ROFL 파일은 "🎮 직접 영상 올리기" 탭에서 업로드하여 분석할 수 있습니다
         </p>
       </div>
     </div>

@@ -7,6 +7,8 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-4684dd3e-30fb-443e-943f-
 export async function POST(request: NextRequest) {
   try {
     const { summonerName, region } = await request.json()
+    
+    console.log('전적검색 요청:', { summonerName, region })
 
     if (!summonerName) {
       return NextResponse.json(
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 지역별 엔드포인트 매핑
+    // 지역별 엔드포인트 매핑 (Riot API v4/v5 규칙에 맞게 수정)
     const getRegionEndpoint = (region: string) => {
       const regionMap: { [key: string]: string } = {
         'kr': 'kr',
@@ -45,8 +47,31 @@ export async function POST(request: NextRequest) {
       return regionMap[region] || 'kr'
     }
 
+    // 매치 API 엔드포인트 매핑 (v5 API는 지역별로 다름)
+    const getMatchEndpoint = (region: string) => {
+      const matchRegionMap: { [key: string]: string } = {
+        'kr': 'asia',
+        'jp1': 'asia',
+        'ph2': 'asia',
+        'sg2': 'asia',
+        'th2': 'asia',
+        'tw2': 'asia',
+        'vn2': 'asia',
+        'na1': 'americas',
+        'br1': 'americas',
+        'la1': 'americas',
+        'la2': 'americas',
+        'euw1': 'europe',
+        'eun1': 'europe',
+        'tr1': 'europe',
+        'ru': 'europe',
+        'oc1': 'americas'
+      }
+      return matchRegionMap[region] || 'asia'
+    }
+
     const regionEndpoint = getRegionEndpoint(region)
-    const asiaEndpoint = region === 'kr' ? 'asia' : 'americas'
+    const matchEndpoint = getMatchEndpoint(region)
 
     // 1. 소환사 정보 가져오기
     const summonerResponse = await fetch(
@@ -84,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     // 2. 최근 게임 기록 가져오기
     const matchHistoryResponse = await fetch(
-      `https://${asiaEndpoint}.api.riotgames.com/lol/match/v5/matches/by-puuid/${summoner.puuid}/ids?start=0&count=10`,
+      `https://${matchEndpoint}.api.riotgames.com/lol/match/v5/matches/by-puuid/${summoner.puuid}/ids?start=0&count=10`,
       {
         headers: {
           'X-Riot-Token': RIOT_API_KEY
@@ -93,7 +118,25 @@ export async function POST(request: NextRequest) {
     )
 
     if (!matchHistoryResponse.ok) {
-      throw new Error('게임 기록을 가져오는데 실패했습니다.')
+      if (matchHistoryResponse.status === 404) {
+        return NextResponse.json(
+          { error: '게임 기록을 찾을 수 없습니다.' },
+          { status: 404 }
+        )
+      }
+      if (matchHistoryResponse.status === 403) {
+        return NextResponse.json(
+          { error: 'API 키가 유효하지 않습니다. 관리자에게 문의해주세요.' },
+          { status: 403 }
+        )
+      }
+      if (matchHistoryResponse.status === 429) {
+        return NextResponse.json(
+          { error: 'API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.' },
+          { status: 429 }
+        )
+      }
+      throw new Error(`게임 기록을 가져오는데 실패했습니다. (${matchHistoryResponse.status})`)
     }
 
     const matchIds = await matchHistoryResponse.json()
@@ -104,7 +147,7 @@ export async function POST(request: NextRequest) {
     for (const matchId of matchIds) {
       try {
         const matchResponse = await fetch(
-          `https://${asiaEndpoint}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+          `https://${matchEndpoint}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
           {
             headers: {
               'X-Riot-Token': RIOT_API_KEY
