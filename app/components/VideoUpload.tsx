@@ -113,9 +113,9 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
     const totalCost = apiCost + platformFee
     
     return {
-      apiCost,
-      platformFee,
-      totalCost,
+      apiCost: Math.floor(apiCost),
+      platformFee: Math.floor(platformFee),
+      totalCost: Math.floor(totalCost),
       fileSizeMB: Math.round(fileSizeMB * 100) / 100,
       currency: 'KRW'
     }
