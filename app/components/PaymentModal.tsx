@@ -28,6 +28,7 @@ export default function PaymentModal({
     try {
       // 실제 결제 처리 로직 (Stripe, 토스페이먼츠 등)
       await processPayment(cost, paymentMethod)
+      alert('결제가 완료되었습니다! 분석을 시작합니다.')
       onConfirm()
     } catch (error) {
       console.error('결제 오류:', error)
@@ -83,16 +84,16 @@ export default function PaymentModal({
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
               <span>API 사용료:</span>
-              <span>${cost.apiCost}</span>
+              <span>₩{cost.apiCost}</span>
             </div>
             <div className="flex justify-between">
               <span>플랫폼 수수료:</span>
-              <span>${cost.platformFee}</span>
+              <span>₩{cost.platformFee}</span>
             </div>
             <div className="border-t pt-1 mt-2">
               <div className="flex justify-between font-bold">
                 <span>총 비용:</span>
-                <span className="text-lg">${cost.totalCost}</span>
+                <span className="text-lg">₩{cost.totalCost}</span>
               </div>
             </div>
           </div>
