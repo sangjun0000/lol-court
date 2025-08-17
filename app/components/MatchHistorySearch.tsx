@@ -26,11 +26,14 @@ interface MatchHistorySearchProps {
 
 export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHistorySearchProps) {
   const [summonerName, setSummonerName] = useState('')
+  const [tagLine, setTagLine] = useState('KR1') // 태그라인 추가
   const [region, setRegion] = useState('kr')
   const [isLoading, setIsLoading] = useState(false)
   const [matches, setMatches] = useState<MatchData[]>([])
   const [error, setError] = useState('')
   const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null)
+  const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [isSearchingTags, setIsSearchingTags] = useState(false)
   const [selectedHighlight, setSelectedHighlight] = useState<{ startTime: number, endTime: number, description: string } | null>(null)
   const [customDescription, setCustomDescription] = useState('')
   const [customStartTime, setCustomStartTime] = useState(0)
@@ -55,9 +58,62 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
     { value: 'vn2', label: '베트남', flag: '🇻🇳' }
   ]
 
+  // 태그라인 검색 함수
+  const searchAvailableTags = async (name: string) => {
+    if (!name.trim() || name.length < 2) {
+      setAvailableTags([])
+      return
+    }
+
+    setIsSearchingTags(true)
+    setAvailableTags([])
+
+    try {
+      const response = await fetch('/api/search-tags', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          summonerName: name.trim(),
+          region: region
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (response.ok && data.tags) {
+        setAvailableTags(data.tags)
+      }
+    } catch (error) {
+      console.error('태그 검색 오류:', error)
+    } finally {
+      setIsSearchingTags(false)
+    }
+  }
+
+  // 소환사명 변경 시 태그라인 자동 검색
+  const handleSummonerNameChange = (name: string) => {
+    setSummonerName(name)
+    if (name.trim().length >= 2) {
+      // 디바운스: 500ms 후에 검색
+      const timeoutId = setTimeout(() => {
+        searchAvailableTags(name)
+      }, 500)
+      return () => clearTimeout(timeoutId)
+    } else {
+      setAvailableTags([])
+    }
+  }
+
   const handleSearch = async () => {
     if (!summonerName.trim()) {
       setError('소환사명을 입력해주세요.')
+      return
+    }
+
+    if (!tagLine.trim()) {
+      setError('태그라인을 선택해주세요.')
       return
     }
 
@@ -72,6 +128,7 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
         },
         body: JSON.stringify({
           summonerName: summonerName.trim(),
+          tagLine: tagLine.trim(),
           region: region
         }),
       })
@@ -201,27 +258,71 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
             </select>
           </div>
 
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               👤 소환사명
             </label>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={summonerName}
-                onChange={(e) => setSummonerName(e.target.value)}
-                placeholder="소환사명을 입력하세요"
-                className="input-field flex-1"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <button
-                onClick={handleSearch}
-                disabled={isLoading}
-                className="court-button px-6"
-              >
-                {isLoading ? '🔍 검색 중...' : '검색'}
-              </button>
-            </div>
+                         <input
+               type="text"
+               value={summonerName}
+               onChange={(e) => handleSummonerNameChange(e.target.value)}
+               placeholder="소환사명"
+               className="input-field"
+               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+             />
+             {/* 태그라인 검색 결과 */}
+             {isSearchingTags && (
+               <div className="mt-1 text-xs text-gray-500">
+                 🔍 태그라인 검색 중...
+               </div>
+             )}
+             {availableTags.length > 0 && (
+               <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                 <div className="text-xs text-blue-700 mb-1">🏷️ 사용 가능한 태그라인:</div>
+                 <div className="flex flex-wrap gap-1">
+                   {availableTags.map((tag, index) => (
+                     <button
+                       key={index}
+                       onClick={() => setTagLine(tag)}
+                       className={`px-2 py-1 text-xs rounded border ${
+                         tagLine === tag 
+                           ? 'bg-blue-500 text-white border-blue-500' 
+                           : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-100'
+                       }`}
+                     >
+                       {tag}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🏷️ 태그라인
+            </label>
+            <input
+              type="text"
+              value={tagLine}
+              onChange={(e) => setTagLine(e.target.value)}
+              placeholder="KR1"
+              className="input-field"
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🔍 검색
+            </label>
+            <button
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="court-button w-full"
+            >
+              {isLoading ? '🔍 검색 중...' : '검색'}
+            </button>
           </div>
         </div>
 

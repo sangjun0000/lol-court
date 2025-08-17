@@ -25,50 +25,61 @@ export async function POST(request: NextRequest) {
     }
 
     // 새로운 방식: ACCOUNT-V1 사용 (by-name 대신)
-    // 1. 먼저 account 정보로 puuid 얻기
-    const accountUrl = `https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(summonerName)}/KR1`
-    console.log('Account API 호출:', accountUrl)
-    
-    const accountResponse = await fetch(accountUrl, {
-      headers: {
-        'X-Riot-Token': RIOT_API_KEY,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Accept-Charset': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'Origin': 'https://developer.riotgames.com',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    })
+    // 1. 먼저 account 정보로 puuid 얻기 (여러 태그라인 시도)
+    const possibleTags = ['KR1', 'KR2', 'KR3', 'KR4', 'KR5', 'KR6', 'KR7', 'KR8', 'KR9', 'KR0']
+    let puuid = null
+    let accountData = null
 
-    console.log('Account API 응답:', { status: accountResponse.status, ok: accountResponse.ok })
+    for (const tag of possibleTags) {
+      try {
+        const accountUrl = `https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(summonerName)}/${tag}`
+        console.log(`Account API 호출 시도 (${tag}):`, accountUrl)
+        
+        const accountResponse = await fetch(accountUrl, {
+          headers: {
+            'X-Riot-Token': RIOT_API_KEY,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Accept-Charset': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Origin': 'https://developer.riotgames.com',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        })
 
-    if (!accountResponse.ok) {
-      if (accountResponse.status === 404) {
-        return NextResponse.json(
-          { error: '소환사를 찾을 수 없습니다. 소환사명을 다시 확인해주세요.' },
-          { status: 404 }
-        )
+        console.log(`Account API 응답 (${tag}):`, { status: accountResponse.status, ok: accountResponse.ok })
+
+        if (accountResponse.ok) {
+          accountData = await accountResponse.json()
+          puuid = accountData.puuid
+          console.log(`성공! PUUID 획득 (${tag}):`, puuid)
+          break
+        } else if (accountResponse.status === 404) {
+          console.log(`태그 ${tag}에서 소환사를 찾을 수 없음`)
+          continue
+        } else if (accountResponse.status === 403) {
+          return NextResponse.json(
+            { error: 'API 키가 유효하지 않습니다. 관리자에게 문의해주세요.' },
+            { status: 403 }
+          )
+        } else if (accountResponse.status === 429) {
+          return NextResponse.json(
+            { error: 'API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.' },
+            { status: 429 }
+          )
+        }
+      } catch (error) {
+        console.log(`태그 ${tag} 시도 중 오류:`, error)
+        continue
       }
-      if (accountResponse.status === 403) {
-        return NextResponse.json(
-          { error: 'API 키가 유효하지 않습니다. 관리자에게 문의해주세요.' },
-          { status: 403 }
-        )
-      }
-      if (accountResponse.status === 429) {
-        return NextResponse.json(
-          { error: 'API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.' },
-          { status: 429 }
-        )
-      }
-      throw new Error(`계정 정보를 가져오는데 실패했습니다. (${accountResponse.status})`)
     }
 
-    const accountData = await accountResponse.json()
-    const puuid = accountData.puuid
-
-    console.log('PUUID 획득:', puuid)
+    if (!puuid) {
+      return NextResponse.json(
+        { error: '소환사를 찾을 수 없습니다. 소환사명과 태그를 다시 확인해주세요.' },
+        { status: 404 }
+      )
+    }
 
     // 2. puuid로 summoner 정보 가져오기
     const summonerUrl = `https://kr.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`
