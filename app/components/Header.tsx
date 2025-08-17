@@ -3,7 +3,7 @@ export default function Header() {
     <header className="text-center py-8">
       <div className="mb-4">
         <h1 className="text-5xl font-bold text-lol-gold mb-2">
-                     ⚖️ 롤법원 <span className="text-sm text-red-500 font-bold">v39</span>
+                     ⚖️ 롤법원 <span className="text-sm text-red-500 font-bold">v40</span>
         </h1>
         <p className="text-xl text-white opacity-90">
           AI 기반 롤문철 - 공정한 판결을 위한 최고의 법원

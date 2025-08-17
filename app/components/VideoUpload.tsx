@@ -32,10 +32,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0]
-               if (error.code === 'file-too-large') {
-           alert('파일이 너무 큽니다. 100MB 이하의 ROFL 파일을 업로드해주세요.')
-           return
-         }
+      if (error.code === 'file-too-large') {
+        alert('파일이 너무 큽니다. 100MB 이하의 ROFL 파일을 업로드해주세요.')
+        return
+      }
     }
     
     const file = acceptedFiles[0]
@@ -177,168 +177,186 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl p-6 border-2 border-lol-gold">
-      <h3 className="text-2xl font-bold text-court-brown mb-6">
-        📁 ROFL 파일 업로드 및 분석
-      </h3>
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 border-2 border-lol-gold">
+        <h3 className="text-3xl font-bold text-court-brown mb-8 text-center">
+          📁 ROFL 파일 업로드 및 분석
+        </h3>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 파일 업로드 영역 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            📹 ROFL 파일 업로드 *
-          </label>
-          
-          <div
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              isDragging 
-                ? 'border-lol-gold bg-yellow-50' 
-                : videoFile 
-                  ? 'border-green-300 bg-green-50' 
-                  : 'border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            <input {...getInputProps()} />
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* 파일 업로드 영역 */}
+          <div>
+            <label className="block text-lg font-semibold text-gray-800 mb-4 text-center">
+              📹 ROFL 파일 업로드 *
+            </label>
             
-            {!videoFile ? (
-              <div>
-                <div className="text-6xl mb-4">📁</div>
-                <p className="text-lg font-medium text-gray-700 mb-2">
-                  ROFL 파일을 여기에 드래그하거나 클릭하여 업로드
-                </p>
-                <p className="text-sm text-gray-500">
-                  ROFL 파일만 업로드 가능 (최대 100MB)
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  💡 ROFL 파일은 리그 오브 레전드 리플레이 파일입니다
-                </p>
-              </div>
-            ) : (
-              <div>
-                <div className="text-6xl mb-4">✅</div>
-                <p className="text-lg font-medium text-green-700 mb-2">
-                  {videoFile.name}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {formatFileSize(videoFile.size)} • {videoFile.type}
-                </p>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setVideoFile(null)
-                  }}
-                  className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
-                >
-                  다른 파일 선택
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ROFL 분석 진행률 */}
-        {isConverting && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-semibold text-yellow-800 mb-2">🔄 ROFL 파일 분석 중...</h4>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="bg-yellow-600 h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${conversionProgress}%` }}
-              ></div>
+            <div
+              {...getRootProps()}
+              className={`border-3 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                isDragging 
+                  ? 'border-lol-gold bg-gradient-to-br from-yellow-50 to-orange-50' 
+                  : videoFile 
+                    ? 'border-green-400 bg-gradient-to-br from-green-50 to-emerald-50' 
+                    : 'border-gray-300 hover:border-lol-gold hover:bg-gray-50'
+              }`}
+            >
+              <input {...getInputProps()} />
+              
+              {!videoFile ? (
+                <div>
+                  <div className="text-7xl mb-6">📁</div>
+                  <p className="text-xl font-semibold text-gray-700 mb-3">
+                    ROFL 파일을 여기에 드래그하거나 클릭하여 업로드
+                  </p>
+                  <p className="text-base text-gray-600 mb-2">
+                    ROFL 파일만 업로드 가능 (최대 100MB)
+                  </p>
+                  <p className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg inline-block">
+                    💡 ROFL 파일은 리그 오브 레전드 리플레이 파일입니다
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <div className="text-7xl mb-6">✅</div>
+                  <p className="text-xl font-semibold text-green-700 mb-3">
+                    {videoFile.name}
+                  </p>
+                  <p className="text-base text-gray-600 mb-4">
+                    {formatFileSize(videoFile.size)} • {videoFile.type}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setVideoFile(null)
+                    }}
+                    className="px-6 py-3 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors font-medium"
+                  >
+                    다른 파일 선택
+                  </button>
+                </div>
+              )}
             </div>
-            <p className="text-sm text-yellow-700 mt-2">
-              {conversionProgress.toFixed(1)}% 완료
-            </p>
           </div>
-        )}
 
-        {/* ROFL 파일 분석 결과 */}
-        {videoFile?.name.endsWith('.rofl') && !isConverting && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-800 mb-2">📊 ROFL 파일 분석 완료</h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p>• 게임 데이터 분석이 완료되었습니다</p>
-              <p>• 전체 게임 구간이 분석 대상입니다</p>
-              <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
+          {/* ROFL 분석 진행률 */}
+          {isConverting && (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-2xl p-6">
+              <h4 className="font-bold text-yellow-800 mb-4 text-center text-lg">🔄 ROFL 파일 분석 중...</h4>
+              <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
+                <div 
+                  className="bg-gradient-to-r from-yellow-500 to-orange-500 h-3 rounded-full transition-all duration-300 shadow-sm"
+                  style={{ width: `${conversionProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-center font-semibold text-yellow-800">
+                {Math.floor(conversionProgress)}% 완료
+              </p>
             </div>
-            
-            {getCurrentCost() && (
-              <div className="mt-3 bg-blue-100 rounded-lg p-3">
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-blue-800">
-                    💰 예상 비용: ₩{getCurrentCost()?.totalCost}
-                  </div>
-                  <div className="text-sm text-blue-600">
-                    파일 크기: {getCurrentCost()?.fileSizeMB}MB • API 비용: ₩{getCurrentCost()?.apiCost} • 수수료: ₩{getCurrentCost()?.platformFee}
+          )}
+
+          {/* ROFL 파일 분석 결과 */}
+          {videoFile?.name.endsWith('.rofl') && !isConverting && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-6">
+              <h4 className="font-bold text-blue-800 mb-4 text-center text-lg">📊 ROFL 파일 분석 완료</h4>
+              <div className="text-base text-blue-700 space-y-2 mb-4">
+                <p>• 게임 데이터 분석이 완료되었습니다</p>
+                <p>• 전체 게임 구간이 분석 대상입니다</p>
+                <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
+              </div>
+              
+              {getCurrentCost() && (
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-800 mb-2">
+                      💰 예상 비용: ₩{getCurrentCost()?.totalCost}
+                    </div>
+                    <div className="text-sm text-blue-600 space-y-1">
+                      <p>파일 크기: {getCurrentCost()?.fileSizeMB}MB</p>
+                      <p>API 비용: ₩{getCurrentCost()?.apiCost} • 수수료: ₩{getCurrentCost()?.platformFee}</p>
+                    </div>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* ROFL 파일 다운로드 방법 안내 */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-6">
+            <h4 className="font-bold text-green-800 mb-4 text-center text-lg">📋 ROFL 파일 다운로드 방법</h4>
+            <div className="text-base text-green-700 space-y-3">
+              <div className="flex items-center space-x-3">
+                <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
+                <p>리그 오브 레전드 클라이언트에 접속하세요</p>
               </div>
-            )}
+              <div className="flex items-center space-x-3">
+                <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
+                <p>닉네임 옆의 초상화를 클릭하세요</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</span>
+                <p>대전기록 탭을 클릭하세요</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</span>
+                <p>분석을 원하는 게임을 선택하세요</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">5</span>
+                <p>"다운로드" 버튼을 클릭하여 ROFL 파일을 다운로드하세요</p>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* ROFL 파일 다운로드 방법 안내 */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-semibold text-green-800 mb-2">📋 ROFL 파일 다운로드 방법</h4>
-          <div className="text-sm text-green-700 space-y-2">
-            <p>1. 리그 오브 레전드 클라이언트에 접속하세요</p>
-            <p>2. 닉네임 옆의 초상화를 클릭하세요</p>
-            <p>3. 대전기록 탭을 클릭하세요</p>
-            <p>4. 분석을 원하는 게임을 선택하세요</p>
-            <p>5. "다운로드" 버튼을 클릭하여 ROFL 파일을 다운로드하세요</p>
+          {/* 분석 상황 설명 */}
+          <div>
+            <label className="block text-lg font-semibold text-gray-800 mb-4 text-center">
+              📝 분석하고 싶은 상황을 자세히 설명해주세요 *
+            </label>
+            <textarea
+              value={customDescription}
+              onChange={(e) => setCustomDescription(e.target.value)}
+              className="w-full px-6 py-4 border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-lol-gold focus:border-transparent resize-none text-base"
+              rows={5}
+              placeholder="예시: 이즈리얼과 세라핀 둘 중에 누구 잘못이 더 큰지 분석해주세요. 이즈리얼이 세라핀의 궁극기를 피하지 못해서 팀파이트에서 패배했습니다."
+            />
+            <p className="text-base text-gray-600 mt-3 text-center">
+              💡 분석하고 싶은 캐릭터 이름을 포함해서 설명해주세요. (예: 이즈리얼, 세라핀, 리신 등)
+            </p>
           </div>
-        </div>
 
-        {/* 분석 상황 설명 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            📝 분석하고 싶은 상황을 자세히 설명해주세요 *
-          </label>
-          <textarea
-            value={customDescription}
-            onChange={(e) => setCustomDescription(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lol-gold focus:border-transparent resize-none"
-            rows={4}
-            placeholder="예시: 이즈리얼과 세라핀 둘 중에 누구 잘못이 더 큰지 분석해주세요. 이즈리얼이 세라핀의 궁극기를 피하지 못해서 팀파이트에서 패배했습니다."
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            💡 분석하고 싶은 캐릭터 이름을 포함해서 설명해주세요. (예: 이즈리얼, 세라핀, 리신 등)
+          {/* 결제 버튼 */}
+          <button
+            type="submit"
+            disabled={isLoading || !videoFile || !customDescription.trim() || !getCurrentCost()}
+            className="court-button w-full text-xl py-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            {isLoading ? '🔍 분석 중...' : `💳 결제하기 (${getCurrentCost() ? `₩${getCurrentCost()?.totalCost}` : '비용 계산 중...'})`}
+          </button>
+        </form>
+
+        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
+          <p className="text-base text-blue-700 text-center leading-relaxed">
+            💡 <strong>ROFL 파일 분석 사용법:</strong><br/>
+            1. 롤 클라이언트에서 ROFL 파일을 다운로드하세요<br/>
+            2. ROFL 파일을 드래그하거나 클릭하여 업로드하세요<br/>
+            3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
+            4. AI가 게임 데이터를 분석하여 객관적인 판결을 내립니다
           </p>
         </div>
 
-        {/* 결제 버튼 */}
-        <button
-          type="submit"
-          disabled={isLoading || !videoFile || !customDescription.trim() || !getCurrentCost()}
-          className="court-button w-full text-lg py-4"
-        >
-          {isLoading ? '🔍 분석 중...' : `💳 결제하기 (${getCurrentCost() ? `₩${getCurrentCost()?.totalCost}` : '비용 계산 중...'})`}
-        </button>
-      </form>
-
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-700">
-          💡 <strong>ROFL 파일 분석 사용법:</strong><br/>
-          1. 롤 클라이언트에서 ROFL 파일을 다운로드하세요<br/>
-          2. ROFL 파일을 드래그하거나 클릭하여 업로드하세요<br/>
-          3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
-          4. AI가 게임 데이터를 분석하여 객관적인 판결을 내립니다
-        </p>
+        {/* 결제 모달 */}
+        {calculatedCost && (
+          <PaymentModal
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            onConfirm={handlePaymentConfirm}
+            cost={calculatedCost}
+            duration={1200}
+            fileName={videoFile?.name || ''}
+          />
+        )}
       </div>
-
-      {/* 결제 모달 */}
-      {calculatedCost && (
-        <PaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          onConfirm={handlePaymentConfirm}
-          cost={calculatedCost}
-          duration={1200}
-          fileName={videoFile?.name || ''}
-        />
-      )}
     </div>
   )
 }
