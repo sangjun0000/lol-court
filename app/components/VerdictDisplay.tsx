@@ -1,6 +1,27 @@
 'use client'
 
-import { Verdict } from '@/app/page'
+interface Verdict {
+  case: string
+  verdict: string
+  reasoning: string
+  punishment: string
+  timestamp: Date
+  confidence: number
+  factors: string[]
+  recommendations: string[]
+  characterAnalysis: string
+  reinforcementLearning: string
+  videoAnalysis: {
+    analysisType: string
+    targetCharacters: string[]
+    timeRange: {
+      start: number
+      end: number
+      duration: number
+    }
+    framesAnalyzed: number
+  }
+}
 
 interface VerdictDisplayProps {
   verdict: Verdict
@@ -60,33 +81,8 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-blue-700 mb-2">최적 행동</h4>
-              <p className="text-blue-800 font-medium">{verdict.reinforcementLearning.optimalAction}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-blue-700 mb-2">예상 보상</h4>
-              <p className="text-blue-800 font-medium">{verdict.reinforcementLearning.expectedReward.toFixed(1)}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-blue-700 mb-2">플레이어 보상</h4>
-              <p className="text-blue-800 font-medium">{verdict.reinforcementLearning.playerReward.toFixed(1)}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-blue-700 mb-2">잘못 정도</h4>
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-red-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${verdict.reinforcementLearning.fault * 100}%` }}
-                  ></div>
-                </div>
-                <span className="text-blue-800 font-medium">
-                  {(verdict.reinforcementLearning.fault * 100).toFixed(1)}%
-                </span>
-              </div>
+              <h4 className="font-semibold text-blue-700 mb-2">강화학습 분석</h4>
+              <p className="text-blue-800 font-medium">{verdict.reinforcementLearning}</p>
             </div>
           </div>
           
@@ -153,21 +149,9 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
         <div className="bg-orange-50 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">🎯 캐릭터별 책임 분석</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-orange-700 font-medium">주요 책임자:</span>
-              <span className="text-orange-800 font-bold">{verdict.characterAnalysis.primaryFault}</span>
-            </div>
-            {verdict.characterAnalysis.secondaryFault && (
-              <div className="flex items-center justify-between">
-                <span className="text-orange-700 font-medium">보조 책임자:</span>
-                <span className="text-orange-800 font-semibold">{verdict.characterAnalysis.secondaryFault}</span>
-              </div>
-            )}
-            <div className="bg-orange-100 rounded-lg p-3 mt-3">
-              <p className="text-orange-800 text-sm leading-relaxed">
-                <strong>판결 근거:</strong> {verdict.characterAnalysis.faultComparison}
-              </p>
-            </div>
+            <p className="text-orange-800 text-sm">
+              {verdict.characterAnalysis}
+            </p>
           </div>
         </div>
       )}
