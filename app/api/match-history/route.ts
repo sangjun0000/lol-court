@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { MatchData } from '@/app/components/MatchHistorySearch'
 
 // 롤 API 키 (환경변수에서 가져옴)
-const RIOT_API_KEY = process.env.RIOT_API_KEY
+const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-4684dd3e-30fb-443e-943f-57b8f3d17572'
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +22,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 지역별 엔드포인트 매핑
+    const getRegionEndpoint = (region: string) => {
+      const regionMap: { [key: string]: string } = {
+        'kr': 'kr',
+        'na1': 'na1',
+        'euw1': 'euw1',
+        'eun1': 'eun1',
+        'jp1': 'jp1',
+        'br1': 'br1',
+        'la1': 'la1',
+        'la2': 'la2',
+        'oc1': 'oc1',
+        'tr1': 'tr1',
+        'ru': 'ru',
+        'ph2': 'ph2',
+        'sg2': 'sg2',
+        'th2': 'th2',
+        'tw2': 'tw2',
+        'vn2': 'vn2'
+      }
+      return regionMap[region] || 'kr'
+    }
+
+    const regionEndpoint = getRegionEndpoint(region)
+    const asiaEndpoint = region === 'kr' ? 'asia' : 'americas'
+
     // 1. 소환사 정보 가져오기
     const summonerResponse = await fetch(
-      `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
+      `https://${regionEndpoint}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
       {
         headers: {
           'X-Riot-Token': RIOT_API_KEY
@@ -35,18 +61,30 @@ export async function POST(request: NextRequest) {
     if (!summonerResponse.ok) {
       if (summonerResponse.status === 404) {
         return NextResponse.json(
-          { error: '소환사를 찾을 수 없습니다.' },
+          { error: '소환사를 찾을 수 없습니다. 소환사명을 다시 확인해주세요.' },
           { status: 404 }
         )
       }
-      throw new Error('소환사 정보를 가져오는데 실패했습니다.')
+      if (summonerResponse.status === 403) {
+        return NextResponse.json(
+          { error: 'API 키가 유효하지 않습니다. 관리자에게 문의해주세요.' },
+          { status: 403 }
+        )
+      }
+      if (summonerResponse.status === 429) {
+        return NextResponse.json(
+          { error: 'API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요.' },
+          { status: 429 }
+        )
+      }
+      throw new Error(`소환사 정보를 가져오는데 실패했습니다. (${summonerResponse.status})`)
     }
 
     const summoner = await summonerResponse.json()
 
     // 2. 최근 게임 기록 가져오기
     const matchHistoryResponse = await fetch(
-      `https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${summoner.puuid}/ids?start=0&count=10`,
+      `https://${asiaEndpoint}.api.riotgames.com/lol/match/v5/matches/by-puuid/${summoner.puuid}/ids?start=0&count=10`,
       {
         headers: {
           'X-Riot-Token': RIOT_API_KEY
@@ -66,7 +104,7 @@ export async function POST(request: NextRequest) {
     for (const matchId of matchIds) {
       try {
         const matchResponse = await fetch(
-          `https://${region}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+          `https://${asiaEndpoint}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
           {
             headers: {
               'X-Riot-Token': RIOT_API_KEY

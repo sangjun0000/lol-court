@@ -76,12 +76,18 @@ export default function MatchHistorySearch({ onVideoAnalysisRequest }: MatchHist
         }),
       })
 
+      const data = await response.json()
+      
       if (!response.ok) {
-        throw new Error('전적 검색에 실패했습니다.')
+        throw new Error(data.error || '전적 검색에 실패했습니다.')
       }
 
-      const data = await response.json()
-      setMatches(data.matches)
+      if (data.matches && data.matches.length > 0) {
+        setMatches(data.matches)
+      } else {
+        setError('최근 게임 기록이 없습니다.')
+        setMatches([])
+      }
     } catch (error) {
       console.error('전적 검색 오류:', error)
       setError('전적을 불러오는 중 오류가 발생했습니다.')
