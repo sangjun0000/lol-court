@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      paymentId: paymentResult.paymentId,
+      paymentId: paymentResult?.paymentId || 'temp_payment_id',
       message: '결제가 완료되었습니다.'
     })
 
@@ -46,4 +46,10 @@ async function processPayment(params: {
   // 4. 결제 완료 후 데이터베이스에 저장
   
   throw new Error('실제 결제 API 연동이 필요합니다. 토스페이먼츠나 카카오페이 API 키를 설정해주세요.')
+  
+  // 실제 구현 시에는 아래와 같은 구조로 반환
+  // return {
+  //   paymentId: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+  //   status: 'succeeded'
+  // }
 }
