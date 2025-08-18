@@ -440,7 +440,7 @@ function identifyTeamWeaknesses(stats: any) {
 }
 
 function extractHighlights(events: any[], duration: number) {
-  const highlights = []
+  const highlights: any[] = []
   const highlightEvents = events.filter(event => 
     event.type === 'CHAMPION_KILL' || 
     event.type === 'ELITE_MONSTER_KILL' ||
@@ -672,7 +672,7 @@ function generateBasicEvents(duration: number) {
 }
 
 function generateBasicHighlights(duration: number) {
-  const highlights = []
+  const highlights: any[] = []
   const highlightTypes = [
     '팀파이트', '오브젝트 스틸', '역전 킬', '퍼펙트 게임', '캐리 플레이',
     '드래곤 스틸', '바론 스틸', '타워 다이브', '백도어', '에이스'
