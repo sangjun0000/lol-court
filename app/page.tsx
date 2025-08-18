@@ -24,14 +24,16 @@ export default function Home() {
   const [verdict, setVerdict] = useState<Verdict | null>(null)
   const [showGameEvaluation, setShowGameEvaluation] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [caseDescription, setCaseDescription] = useState('')
 
-  const handleVideoUpload = async (uploadedGameData: any) => {
+  const handleVideoUpload = async (uploadedGameData: any, description: string) => {
     setGameData(uploadedGameData)
+    setCaseDescription(description)
     setShowGameEvaluation(true)
   }
 
-  const handleVerdictRequest = async (caseDescription: string) => {
-    if (!gameData) return
+  const handleVerdictRequest = async () => {
+    if (!gameData || !caseDescription) return
 
     setIsLoading(true)
 
@@ -75,6 +77,7 @@ export default function Home() {
               {showGameEvaluation && (
                 <GameEvaluation 
                   gameData={gameData} 
+                  caseDescription={caseDescription}
                   onVerdictRequest={handleVerdictRequest}
                   isLoading={isLoading}
                 />

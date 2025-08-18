@@ -4,7 +4,7 @@ export default function Header() {
   return (
     <div className="text-center mb-8">
       <h1 className="text-5xl font-bold text-lol-gold mb-2">
-        ⚖️ 롤법원 <span className="text-sm text-red-500 font-bold">v48</span>
+        ⚖️ 롤법원 <span className="text-sm text-red-500 font-bold">v49</span>
       </h1>
       
       <p className="text-lg text-gray-700 mb-4">
