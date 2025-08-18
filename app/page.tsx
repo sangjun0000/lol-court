@@ -39,6 +39,8 @@ export default function Home() {
   const handleVideoUpload = async (data: VideoUploadData) => {
     setIsLoading(true)
     try {
+      let gameData = null
+      
       // ROFL 파일인 경우 게임 데이터 분석
       if (data.videoFile.name.endsWith('.rofl')) {
         const roflFormData = new FormData()
@@ -54,18 +56,20 @@ export default function Home() {
         }
         
         const roflData = await roflResponse.json()
-        setGameEvaluation(roflData.gameData)
+        gameData = roflData.gameData
+        setGameEvaluation(gameData)
         setShowGameEvaluation(true)
       }
       
-      // 판결 요청
+      // 판결 요청 (게임 데이터 포함)
       const judgeResponse = await fetch('/api/judge', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          case: data.customDescription
+          case: data.customDescription,
+          gameData: gameData
         })
       })
 
@@ -85,7 +89,7 @@ export default function Home() {
         factors: judgeData.factors || [],
         recommendations: judgeData.recommendations || [],
         characterAnalysis: judgeData.characterAnalysis || '',
-        reinforcementLearning: judgeData.reinforcementLearning || 'AI 판사가 게임 상황을 종합적으로 분석하여 판결을 내렸습니다.',
+        reinforcementLearning: judgeData.reinforcementLearning || 'AI 판사가 게임 데이터를 종합적으로 분석하여 판결을 내렸습니다.',
         videoAnalysis: {
           analysisType: 'rofl-analysis',
           targetCharacters: data.targetCharacters,

@@ -21,6 +21,16 @@ interface Verdict {
     }
     framesAnalyzed: number
   }
+  gameContext?: {
+    totalKills: number
+    totalDeaths: number
+    totalAssists: number
+    gameDuration: number
+    participants: number
+    mentionedChampions: string[]
+    relevantPlayers: any[]
+  }
+  responsibilityAnalysis?: string
 }
 
 interface VerdictDisplayProps {
@@ -140,6 +150,67 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
                 <span className="text-gray-700">{recommendation}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* 게임 컨텍스트 정보 */}
+      {verdict.gameContext && (
+        <div className="verdict-card bg-gradient-to-r from-green-50 to-emerald-50">
+          <h3 className="text-xl font-bold text-green-800 mb-4">
+            🎮 게임 컨텍스트 정보
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-white rounded-lg p-4">
+              <h4 className="font-semibold text-green-700 mb-2">게임 통계</h4>
+              <p className="text-green-800 font-medium">
+                총 킬: {verdict.gameContext.totalKills} | 
+                총 데스: {verdict.gameContext.totalDeaths} | 
+                총 어시스트: {verdict.gameContext.totalAssists}
+              </p>
+              <p className="text-green-800 font-medium">
+                게임 시간: {Math.floor(verdict.gameContext.gameDuration / 60)}분 | 
+                참가자: {verdict.gameContext.participants}명
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4">
+              <h4 className="font-semibold text-green-700 mb-2">관련 챔피언</h4>
+              <p className="text-green-800 font-medium">
+                {verdict.gameContext.mentionedChampions.join(', ') || '없음'}
+              </p>
+            </div>
+          </div>
+          
+          {verdict.gameContext.relevantPlayers.length > 0 && (
+            <div className="bg-white rounded-lg p-4 mb-4">
+              <h4 className="font-semibold text-green-700 mb-2">관련 플레이어 성과</h4>
+              <div className="space-y-2">
+                {verdict.gameContext.relevantPlayers.map((player, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span className="font-medium text-green-800">{player.champion}</span>
+                    <span className="text-sm text-gray-600">
+                      KDA: {player.kills}/{player.deaths}/{player.assists} | 
+                      CS: {player.cs} | 
+                      점수: {player.score}점 (순위: {player.rank}위)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 책임도 분석 */}
+      {verdict.responsibilityAnalysis && (
+        <div className="bg-orange-50 rounded-lg p-4">
+          <h3 className="font-semibold text-orange-800 mb-2">🎯 책임도 분석</h3>
+          <div className="space-y-3">
+            <p className="text-orange-800 text-sm whitespace-pre-line">
+              {verdict.responsibilityAnalysis}
+            </p>
           </div>
         </div>
       )}
