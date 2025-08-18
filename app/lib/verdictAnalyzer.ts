@@ -145,7 +145,7 @@ export class LolCourtAnalyzer {
       const player = this.gameData.participants.find((p: any) => p.champion === champion)
       if (!player) continue
       
-      const playerEvents = relatedEvents.filter(e => e.participantId === player.id)
+      const playerEvents = relatedEvents.filter((e: any) => e.participantId === player.id)
       const behavior = this.analyzePlayerBehavior(champion, player, playerEvents, situationType)
       behaviors.push(behavior)
     }
@@ -156,7 +156,7 @@ export class LolCourtAnalyzer {
     )
     
     for (const player of otherPlayers) {
-      const playerEvents = relatedEvents.filter(e => e.participantId === player.id)
+      const playerEvents = relatedEvents.filter((e: any) => e.participantId === player.id)
       if (playerEvents.length > 0) {
         const behavior = this.analyzePlayerBehavior(player.champion, player, playerEvents, situationType)
         behaviors.push(behavior)
