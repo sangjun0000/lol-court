@@ -46,10 +46,10 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       <div className="verdict-card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold text-court-brown">
-            {getVerdictIcon(verdict.verdict)} 판결
+            {getVerdictIcon(verdict.verdict)} 법원 판결문
           </h2>
           <span className="text-sm text-gray-500">
-            {verdict.timestamp.toLocaleString()}
+            판결일시: {verdict.timestamp.toLocaleString()}
           </span>
         </div>
         
@@ -60,13 +60,13 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <h3 className="font-semibold text-gray-800 mb-2">📋 판결 근거</h3>
+          <h3 className="font-semibold text-gray-800 mb-2">📋 판결 이유</h3>
           <p className="text-gray-700 leading-relaxed">{verdict.reasoning}</p>
         </div>
 
         {verdict.punishment && (
           <div className="bg-red-50 rounded-lg p-4 mb-4">
-            <h3 className="font-semibold text-red-800 mb-2">⚖️ 제재 사항</h3>
+            <h3 className="font-semibold text-red-800 mb-2">⚖️ 법원 제재</h3>
             <p className="text-red-700">{verdict.punishment}</p>
           </div>
         )}
@@ -76,21 +76,21 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       {verdict.reinforcementLearning && (
         <div className="verdict-card bg-gradient-to-r from-blue-50 to-indigo-50">
           <h3 className="text-xl font-bold text-blue-800 mb-4">
-            🤖 강화학습 분석 결과
+            🤖 AI 판사 심리 분석
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-blue-700 mb-2">강화학습 분석</h4>
+              <h4 className="font-semibold text-blue-700 mb-2">AI 심리 분석</h4>
               <p className="text-blue-800 font-medium">{verdict.reinforcementLearning}</p>
             </div>
           </div>
           
           <div className="bg-blue-100 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-800 mb-2">📊 분석 설명</h4>
+            <h4 className="font-semibold text-blue-800 mb-2">📊 심리 분석 설명</h4>
             <p className="text-blue-700 text-sm">
-              강화학습 시스템이 각 행동의 보상값을 계산하여 최적의 선택을 도출했습니다. 
-              플레이어의 행동과 최적 행동 간의 차이를 통해 잘못의 정도를 수치화했습니다.
+              AI 판사가 각 행동의 적절성을 분석하여 최적의 판단을 도출했습니다. 
+              플레이어의 행동과 표준 행동 간의 차이를 통해 책임의 정도를 수치화했습니다.
             </p>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       {/* 신뢰도 */}
       {verdict.confidence && (
         <div className="verdict-card">
-          <h3 className="font-semibold text-gray-800 mb-2">🎯 판결 신뢰도</h3>
+          <h3 className="font-semibold text-gray-800 mb-2">🎯 법원 판결 신뢰도</h3>
           <div className="flex items-center space-x-4">
             <div className="flex-1 bg-gray-200 rounded-full h-3">
               <div 
@@ -117,7 +117,7 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       {/* 고려 요소 */}
       {verdict.factors && verdict.factors.length > 0 && (
         <div className="verdict-card">
-          <h3 className="font-semibold text-gray-800 mb-3">🔍 고려한 요소</h3>
+          <h3 className="font-semibold text-gray-800 mb-3">🔍 법원 심리 고려사항</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {verdict.factors.map((factor, index) => (
               <div key={index} className="flex items-center space-x-2">
@@ -132,7 +132,7 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       {/* 개선 제안 */}
       {verdict.recommendations && verdict.recommendations.length > 0 && (
         <div className="verdict-card">
-          <h3 className="font-semibold text-gray-800 mb-3">💡 개선 제안</h3>
+          <h3 className="font-semibold text-gray-800 mb-3">💡 법원 권고사항</h3>
           <div className="space-y-2">
             {verdict.recommendations.map((recommendation, index) => (
               <div key={index} className="flex items-start space-x-2">
@@ -147,7 +147,7 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       {/* 캐릭터별 책임 분석 */}
       {verdict.characterAnalysis && (
         <div className="bg-orange-50 rounded-lg p-4">
-          <h3 className="font-semibold text-orange-800 mb-2">🎯 캐릭터별 책임 분석</h3>
+          <h3 className="font-semibold text-orange-800 mb-2">🎯 피고별 책임 분석</h3>
           <div className="space-y-3">
             <p className="text-orange-800 text-sm">
               {verdict.characterAnalysis}
@@ -160,37 +160,37 @@ export default function VerdictDisplay({ verdict }: VerdictDisplayProps) {
       {verdict.videoAnalysis && (
         <div className="verdict-card bg-gradient-to-r from-purple-50 to-pink-50">
           <h3 className="text-xl font-bold text-purple-800 mb-4">
-            🎬 영상 분석 정보
+            🎬 증거 자료 분석 정보
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-purple-700 mb-2">분석 유형</h4>
+              <h4 className="font-semibold text-purple-700 mb-2">심리 유형</h4>
               <p className="text-purple-800 font-medium">{verdict.videoAnalysis.analysisType}</p>
             </div>
             
             <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-purple-700 mb-2">분석 구간</h4>
+              <h4 className="font-semibold text-purple-700 mb-2">심리 구간</h4>
               <p className="text-purple-800 font-medium">
                 {formatTime(verdict.videoAnalysis.timeRange.start)} ~ {formatTime(verdict.videoAnalysis.timeRange.end)}
               </p>
             </div>
             
             <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-purple-700 mb-2">분석된 프레임</h4>
+              <h4 className="font-semibold text-purple-700 mb-2">심리된 증거</h4>
               <p className="text-purple-800 font-medium">{verdict.videoAnalysis.framesAnalyzed}개</p>
             </div>
             
             <div className="bg-white rounded-lg p-4">
-              <h4 className="font-semibold text-purple-700 mb-2">판결 대상</h4>
+              <h4 className="font-semibold text-purple-700 mb-2">소송 당사자</h4>
               <p className="text-purple-800 font-medium">{verdict.videoAnalysis.targetCharacters.join(', ')}</p>
             </div>
           </div>
           
           <div className="bg-purple-100 rounded-lg p-4">
-            <h4 className="font-semibold text-purple-800 mb-2">📊 분석 상세</h4>
+            <h4 className="font-semibold text-purple-800 mb-2">📊 심리 상세</h4>
             <p className="text-purple-700 text-sm">
-              AI가 영상의 {verdict.videoAnalysis.framesAnalyzed}개 프레임을 분석하여 
+              AI 판사가 증거 자료의 {verdict.videoAnalysis.framesAnalyzed}개 요소를 심리하여 
               {formatTime(verdict.videoAnalysis.timeRange.duration)} 구간의 게임 상황을 판단했습니다.
             </p>
           </div>

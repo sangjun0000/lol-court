@@ -142,16 +142,16 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-2xl shadow-2xl p-8 border-2 border-lol-gold">
-        <h3 className="text-3xl font-bold text-court-brown mb-8 text-center">
-          📁 ROFL 파일 업로드 및 분석
-        </h3>
+                 <h3 className="text-3xl font-bold text-court-brown mb-8 text-center">
+           📁 ROFL 파일 업로드 및 법원 심리
+         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* 파일 업로드 영역 */}
           <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-4 text-center">
-              📹 ROFL 파일 업로드 *
-            </label>
+                         <label className="block text-lg font-semibold text-gray-800 mb-4 text-center">
+               📹 증거 자료 (ROFL 파일) 업로드 *
+             </label>
             
             <div
               {...getRootProps()}
@@ -205,7 +205,7 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           {/* ROFL 분석 진행률 */}
           {isConverting && (
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-2xl p-6">
-              <h4 className="font-bold text-yellow-800 mb-4 text-center text-lg">🔄 ROFL 파일 분석 중...</h4>
+                             <h4 className="font-bold text-yellow-800 mb-4 text-center text-lg">🔄 증거 자료 심사 중...</h4>
               <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
                 <div 
                   className="bg-gradient-to-r from-yellow-500 to-orange-500 h-3 rounded-full transition-all duration-300 shadow-sm"
@@ -221,22 +221,22 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
           {/* ROFL 파일 분석 결과 */}
           {videoFile?.name.endsWith('.rofl') && !isConverting && (
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-6">
-              <h4 className="font-bold text-blue-800 mb-4 text-center text-lg">📊 ROFL 파일 분석 완료</h4>
-              <div className="text-base text-blue-700 space-y-2 mb-4">
-                <p>• 게임 데이터 분석이 완료되었습니다</p>
-                <p>• 전체 게임 구간이 분석 대상입니다</p>
-                <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
-              </div>
+                             <h4 className="font-bold text-blue-800 mb-4 text-center text-lg">📊 증거 자료 심사 완료</h4>
+               <div className="text-base text-blue-700 space-y-2 mb-4">
+                 <p>• 게임 데이터 심사가 완료되었습니다</p>
+                 <p>• 전체 게임 구간이 심리 대상입니다</p>
+                 <p>• 아래에 소송 사유를 자세히 진술해주세요</p>
+               </div>
               
               <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-2">
-                    🎉 무료 분석 서비스
-                  </div>
-                  <div className="text-sm text-blue-600">
-                    <p>광고 수익으로 운영되는 무료 서비스입니다</p>
-                    <p>비용 없이 AI 분석을 이용하실 수 있습니다</p>
-                  </div>
+                                     <div className="text-2xl font-bold text-green-600 mb-2">
+                     ⚖️ 무료 법원 서비스
+                   </div>
+                   <div className="text-sm text-blue-600">
+                     <p>광고 수익으로 운영되는 무료 법원입니다</p>
+                     <p>비용 없이 AI 판사를 이용하실 수 있습니다</p>
+                   </div>
                 </div>
               </div>
             </div>
@@ -271,42 +271,42 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
 
           {/* 분석 상황 설명 */}
           <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-4 text-center">
-              📝 분석하고 싶은 상황을 자세히 설명해주세요 *
-            </label>
+                         <label className="block text-lg font-semibold text-gray-800 mb-4 text-center">
+               📝 소송 사유 진술 *
+             </label>
             <textarea
               value={customDescription}
               onChange={(e) => setCustomDescription(e.target.value)}
               className="w-full px-6 py-4 border-2 border-gray-300 rounded-2xl focus:ring-2 focus:ring-lol-gold focus:border-transparent resize-none text-base"
               rows={5}
-              placeholder="예시: 이즈리얼과 세라핀 둘 중에 누구 잘못이 더 큰지 분석해주세요. 이즈리얼이 세라핀의 궁극기를 피하지 못해서 팀파이트에서 패배했습니다."
+                             placeholder="예시: 이즈리얼과 세라핀 중 누구의 잘못이 더 큰지 판결해주세요. 이즈리얼이 세라핀의 궁극기를 피하지 못해서 팀파이트에서 패배했습니다."
             />
-            <p className="text-base text-gray-600 mt-3 text-center">
-              💡 분석하고 싶은 캐릭터 이름을 포함해서 설명해주세요. (예: 이즈리얼, 세라핀, 리신 등)
-            </p>
+                         <p className="text-base text-gray-600 mt-3 text-center">
+               💡 소송 관련자(캐릭터) 이름을 포함해서 진술해주세요. (예: 이즈리얼, 세라핀, 리신 등)
+             </p>
           </div>
 
-          {/* 분석 시작 버튼 */}
-          <button
-            type="submit"
-            disabled={isLoading || !videoFile || !customDescription.trim()}
-            className="court-button w-full text-xl py-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {isLoading ? '🔍 분석 중...' : '🚀 무료 분석 시작'}
-          </button>
+                     {/* 판결 시작 버튼 */}
+           <button
+             type="submit"
+             disabled={isLoading || !videoFile || !customDescription.trim()}
+             className="court-button w-full text-xl py-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+           >
+             {isLoading ? '⚖️ 판결 심의 중...' : '⚖️ 법원 판결 시작'}
+           </button>
         </form>
 
-        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
-          <p className="text-base text-blue-700 text-center leading-relaxed">
-            💡 <strong>ROFL 파일 분석 사용법:</strong><br/>
-            1. 롤 클라이언트에서 ROFL 파일을 다운로드하세요<br/>
-            2. ROFL 파일을 드래그하거나 클릭하여 업로드하세요<br/>
-            3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
-            4. AI가 게임 데이터를 분석하여 객관적인 판결을 내립니다<br/>
-            <br/>
-            🎉 <strong>무료 서비스:</strong> 광고 수익으로 운영되는 무료 AI 분석 서비스입니다
-          </p>
-        </div>
+                 <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-200">
+           <p className="text-base text-blue-700 text-center leading-relaxed">
+             💡 <strong>롤법원 사용법:</strong><br/>
+             1. 롤 클라이언트에서 ROFL 파일을 다운로드하세요<br/>
+             2. 증거 자료(ROFL 파일)를 드래그하거나 클릭하여 업로드하세요<br/>
+             3. 소송 사유를 자세히 진술하세요 (관련자 이름 포함)<br/>
+             4. AI 판사가 게임 데이터를 심사하여 공정한 판결을 내립니다<br/>
+             <br/>
+             ⚖️ <strong>무료 법원:</strong> 광고 수익으로 운영되는 무료 AI 법원 서비스입니다
+           </p>
+         </div>
       </div>
     </div>
   )
