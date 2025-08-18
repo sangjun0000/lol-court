@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { amount, currency, paymentMethod, fileName, duration } = body
 
     // 실제 결제 처리 로직
-    const paymentResult = await processPayment({
+    await processPayment({
       amount,
       currency,
       paymentMethod,
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      paymentId: paymentResult?.paymentId || 'temp_payment_id',
+      paymentId: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       message: '결제가 완료되었습니다.'
     })
 
