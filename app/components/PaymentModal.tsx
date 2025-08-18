@@ -26,13 +26,18 @@ export default function PaymentModal({
   const handleConfirm = async () => {
     setIsProcessing(true)
     try {
-      // 실제 결제 처리 로직 (Stripe, 토스페이먼츠 등)
-      await processPayment(cost, paymentMethod)
-      alert('결제가 완료되었습니다! 분석을 시작합니다.')
-      onConfirm()
+      // 실제 결제 처리 로직
+      const result = await processPayment(cost, paymentMethod)
+      
+      if (result.success) {
+        alert('결제가 완료되었습니다! 분석을 시작합니다.')
+        onConfirm()
+      } else {
+        alert('결제에 실패했습니다. 다시 시도해주세요.')
+      }
     } catch (error) {
       console.error('결제 오류:', error)
-      alert('결제 중 오류가 발생했습니다. 다시 시도해주세요.')
+      alert('결제 중 오류가 발생했습니다. 실제 결제 API 연동이 필요합니다.')
     } finally {
       setIsProcessing(false)
     }

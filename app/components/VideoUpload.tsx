@@ -108,8 +108,8 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
     
     // ROFL 파일 크기에 비례한 비용 계산
     const fileSizeMB = videoFile.size / (1024 * 1024)
-    const apiCost = fileSizeMB * 100 // 1MB당 100원
-    const platformFee = 500 // 고정 수수료 500원
+    const apiCost = fileSizeMB * 50 // 1MB당 50원으로 낮춤
+    const platformFee = 100 // 최저 수수료 100원으로 낮춤
     const totalCost = apiCost + platformFee
     
     return {

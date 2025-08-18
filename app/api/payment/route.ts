@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { amount, currency, paymentMethod, fileName, duration } = body
 
-    // 실제 결제 처리 로직 (Stripe, 토스페이먼츠 등)
+    // 실제 결제 처리 로직
     const paymentResult = await processPayment({
       amount,
       currency,
@@ -36,14 +36,14 @@ async function processPayment(params: {
   fileName: string
   duration: number
 }) {
-  // 실제 결제 처리 로직 구현 필요
-  // 예: Stripe, 토스페이먼츠, 카카오페이 등
+  // 실제 결제 처리 로직 구현
+  // 토스페이먼츠, 카카오페이, 네이버페이 등 연동 필요
   
-  // 현재는 모의 결제 처리
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  // 현재는 실제 결제 API 연동이 필요합니다
+  // 1. 토스페이먼츠 API 키 설정
+  // 2. 결제 요청 생성
+  // 3. 결제 승인 처리
+  // 4. 결제 완료 후 데이터베이스에 저장
   
-  return {
-    paymentId: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    status: 'succeeded'
-  }
+  throw new Error('실제 결제 API 연동이 필요합니다. 토스페이먼츠나 카카오페이 API 키를 설정해주세요.')
 }
