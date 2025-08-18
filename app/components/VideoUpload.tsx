@@ -2,8 +2,6 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { CostBreakdown } from '@/app/lib/costCalculator'
-import PaymentModal from './PaymentModal'
 
 export interface VideoUploadData {
   videoFile: File
@@ -23,8 +21,6 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [customDescription, setCustomDescription] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [calculatedCost, setCalculatedCost] = useState<CostBreakdown | null>(null)
   const [conversionProgress, setConversionProgress] = useState<number>(0)
   const [isConverting, setIsConverting] = useState<boolean>(false)
 
@@ -102,40 +98,10 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
     onDragLeave: () => setIsDragging(false)
   })
 
-  // 비용 계산
-  const getCurrentCost = () => {
-    if (!videoFile) return null
-    
-    // ROFL 파일 크기에 비례한 비용 계산
-    const fileSizeMB = videoFile.size / (1024 * 1024)
-    const apiCost = fileSizeMB * 50 // 1MB당 50원으로 낮춤
-    const platformFee = 100 // 최저 수수료 100원으로 낮춤
-    const totalCost = apiCost + platformFee
-    
-    return {
-      apiCost: Math.floor(apiCost),
-      platformFee: Math.floor(platformFee),
-      totalCost: Math.floor(totalCost),
-      fileSizeMB: Math.round(fileSizeMB * 100) / 100,
-      currency: 'KRW'
-    }
-  }
-
   // 폼 제출
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (videoFile && customDescription.trim()) {
-      const cost = getCurrentCost()
-      if (cost) {
-        setCalculatedCost(cost)
-        setShowPaymentModal(true)
-      }
-    }
-  }
-
-  // 결제 확인
-  const handlePaymentConfirm = () => {
-    if (videoFile && customDescription.trim() && calculatedCost) {
       const characterNames = extractCharacterNames(customDescription)
       
       onSubmit({
@@ -146,9 +112,6 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
         analysisType: 'custom',
         customDescription
       })
-      
-      setShowPaymentModal(false)
-      setCalculatedCost(null)
     }
   }
 
@@ -265,19 +228,17 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
                 <p>• 아래에 분석하고 싶은 상황을 자세히 설명해주세요</p>
               </div>
               
-              {getCurrentCost() && (
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-800 mb-2">
-                      💰 예상 비용: ₩{getCurrentCost()?.totalCost}
-                    </div>
-                    <div className="text-sm text-blue-600 space-y-1">
-                      <p>파일 크기: {getCurrentCost()?.fileSizeMB}MB</p>
-                      <p>API 비용: ₩{getCurrentCost()?.apiCost} • 수수료: ₩{getCurrentCost()?.platformFee}</p>
-                    </div>
+              <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600 mb-2">
+                    🎉 무료 분석 서비스
+                  </div>
+                  <div className="text-sm text-blue-600">
+                    <p>광고 수익으로 운영되는 무료 서비스입니다</p>
+                    <p>비용 없이 AI 분석을 이용하실 수 있습니다</p>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -325,13 +286,13 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
             </p>
           </div>
 
-          {/* 결제 버튼 */}
+          {/* 분석 시작 버튼 */}
           <button
             type="submit"
-            disabled={isLoading || !videoFile || !customDescription.trim() || !getCurrentCost()}
+            disabled={isLoading || !videoFile || !customDescription.trim()}
             className="court-button w-full text-xl py-5 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            {isLoading ? '🔍 분석 중...' : `💳 결제하기 (${getCurrentCost() ? `₩${getCurrentCost()?.totalCost}` : '비용 계산 중...'})`}
+            {isLoading ? '🔍 분석 중...' : '🚀 무료 분석 시작'}
           </button>
         </form>
 
@@ -341,21 +302,11 @@ export default function VideoUpload({ onSubmit, isLoading }: VideoUploadProps) {
             1. 롤 클라이언트에서 ROFL 파일을 다운로드하세요<br/>
             2. ROFL 파일을 드래그하거나 클릭하여 업로드하세요<br/>
             3. 분석하고 싶은 상황을 자세히 설명하세요 (캐릭터 이름 포함)<br/>
-            4. AI가 게임 데이터를 분석하여 객관적인 판결을 내립니다
+            4. AI가 게임 데이터를 분석하여 객관적인 판결을 내립니다<br/>
+            <br/>
+            🎉 <strong>무료 서비스:</strong> 광고 수익으로 운영되는 무료 AI 분석 서비스입니다
           </p>
         </div>
-
-        {/* 결제 모달 */}
-        {calculatedCost && (
-          <PaymentModal
-            isOpen={showPaymentModal}
-            onClose={() => setShowPaymentModal(false)}
-            onConfirm={handlePaymentConfirm}
-            cost={calculatedCost}
-            duration={1200}
-            fileName={videoFile?.name || ''}
-          />
-        )}
       </div>
     </div>
   )
