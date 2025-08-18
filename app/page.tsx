@@ -39,41 +39,53 @@ export default function Home() {
   const handleVideoUpload = async (data: VideoUploadData) => {
     setIsLoading(true)
     try {
-      const formData = new FormData()
-      formData.append('videoFile', data.videoFile)
-      formData.append('analysisType', data.analysisType)
-      formData.append('targetCharacters', JSON.stringify(data.targetCharacters))
-      formData.append('startTime', data.startTime.toString())
-      formData.append('endTime', data.endTime.toString())
-      formData.append('customDescription', data.customDescription)
-
-      const response = await fetch('/api/analyze-video', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!response.ok) {
-        throw new Error('분석 요청에 실패했습니다.')
-      }
-
-      const responseData = await response.json()
-      
+      // ROFL 파일인 경우 게임 데이터 분석
       if (data.videoFile.name.endsWith('.rofl')) {
-        setGameEvaluation(responseData.gameAnalysis)
+        const roflFormData = new FormData()
+        roflFormData.append('roflFile', data.videoFile)
+        
+        const roflResponse = await fetch('/api/analyze-rofl', {
+          method: 'POST',
+          body: roflFormData
+        })
+        
+        if (!roflResponse.ok) {
+          throw new Error('ROFL 파일 분석에 실패했습니다.')
+        }
+        
+        const roflData = await roflResponse.json()
+        setGameEvaluation(roflData.gameData)
         setShowGameEvaluation(true)
       }
       
+      // 판결 요청
+      const judgeResponse = await fetch('/api/judge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          case: data.customDescription
+        })
+      })
+
+      if (!judgeResponse.ok) {
+        throw new Error('판결 요청에 실패했습니다.')
+      }
+
+      const judgeData = await judgeResponse.json()
+      
       setVerdict({
-        case: `ROFL 파일 분석: ${data.analysisType} 상황`,
-        verdict: responseData.verdict,
-        reasoning: responseData.reasoning,
-        punishment: responseData.punishment,
+        case: data.customDescription,
+        verdict: judgeData.verdict,
+        reasoning: judgeData.reasoning,
+        punishment: judgeData.punishment || '',
         timestamp: new Date(),
-        confidence: responseData.confidence,
-        factors: responseData.factors,
-        recommendations: responseData.recommendations,
-        characterAnalysis: responseData.characterAnalysis,
-        reinforcementLearning: responseData.reinforcementLearning,
+        confidence: judgeData.confidence || 0.8,
+        factors: judgeData.factors || [],
+        recommendations: judgeData.recommendations || [],
+        characterAnalysis: judgeData.characterAnalysis || '',
+        reinforcementLearning: judgeData.reinforcementLearning || 'AI 판사가 게임 상황을 종합적으로 분석하여 판결을 내렸습니다.',
         videoAnalysis: {
           analysisType: 'rofl-analysis',
           targetCharacters: data.targetCharacters,
@@ -86,8 +98,8 @@ export default function Home() {
         }
       })
     } catch (error) {
-      console.error('영상 업로드 분석 오류:', error)
-      alert('영상 분석 중 오류가 발생했습니다.')
+      console.error('판결 처리 오류:', error)
+      alert('판결 처리 중 오류가 발생했습니다.')
     } finally {
       setIsLoading(false)
     }
@@ -167,3 +179,4 @@ export default function Home() {
     </div>
   )
 }
+
