@@ -1,28 +1,4 @@
 // 롤문철 분석을 위한 고급 판결 시스템
-import { GameKnowledgeBase } from './gameKnowledge'
-
-export interface GameContext {
-  gamePhase: 'early' | 'mid' | 'late'
-  teamComposition: string[]
-  playerRoles: string[]
-  gameState: 'winning' | 'losing' | 'even'
-  objectives: string[]
-  roleConflicts?: string[]
-}
-
-export interface VerdictAnalysis {
-  verdict: string
-  reasoning: string
-  punishment?: string
-  confidence: number
-  factors: string[]
-  recommendations: string[]
-  characterAnalysis?: {
-    primaryFault: string
-    secondaryFault?: string
-    faultComparison: string
-  }
-}
 
 export class LolCourtAnalyzer {
   private gameData: any = null
